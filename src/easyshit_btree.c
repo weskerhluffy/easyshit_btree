@@ -469,6 +469,9 @@ static inline arbol_verga_ctx *arbol_verga_init(
 
 	ctx->nodos_libres_arbol_verga_ctx = list_new();
 
+	memset(ctx->nodos_libres_mem_arbol_verga_ctx, ARBOL_VERGA_VALOR_INVALIDO,
+			sizeof(ctx->nodos_libres_mem_arbol_verga_ctx));
+
 	for (int i = 0; i < ARBOL_VERGA_MAX_NODOS_LIBRES; i++) {
 		list_add_element(ctx->nodos_libres_arbol_verga_ctx,
 				ctx->nodos_libres_mem_arbol_verga_ctx + i);
@@ -477,6 +480,11 @@ static inline arbol_verga_ctx *arbol_verga_init(
 
 	ctx->funcion_cmp_arbol_verga_ctx = funcion_cmp;
 	return ctx;
+}
+
+static inline void arbol_verga_fini(arbol_verga_ctx *ctx) {
+	list_free(ctx->nodos_libres_arbol_verga_ctx);
+	free(ctx);
 }
 
 static inline arbol_verga_nodo *arbol_verga_alloca_nodo(arbol_verga_ctx *ctx) {
@@ -517,13 +525,21 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 	}
 
 	assert_timeout(
-			datos_llave->llave_arbol_verga_datos_llave == llaves[pos_llave]);
+			datos_llave->llave_arbol_verga_datos_llave == (*llaves)[pos_llave]);
+
+	caca_log_debug("borrando llave %p",
+			datos_llave->llave_arbol_verga_datos_llave);
 
 	for (int i = pos_llave; i < nodo->llaves_cnt_arbol_verga_nodo - 1; i++) {
+		caca_log_debug("llave en pos %u antes era %p aora %p", i, (*llaves)[i],
+				(*llaves)[i+1]);
 		(*llaves)[i] = (*llaves)[i + 1];
 	}
 	(*llaves)[nodo->llaves_cnt_arbol_verga_nodo - 1] =
 	ARBOL_VERGA_APUNTADOR_INVALIDO;
+
+	caca_log_debug("borrada llave %p en pos %u",
+			datos_llave->llave_arbol_verga_datos_llave, pos_llave);
 
 	huerfano = (*hijos)[pos_llave + offset_hijo];
 	for (int i = pos_llave + offset_hijo;
@@ -574,11 +590,14 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 	nodo->llaves_cnt_arbol_verga_nodo++;
 }
 
-#define arbol_verga_obten_hijo_izq(nodo, pos_llave) ((nodo)->hijos_arbol_verga_nodo[(pos_llave)])
-#define arbol_verga_obten_hijo_der(nodo, pos_llave) ((nodo)->hijos_arbol_verga_nodo[(pos_llave)+1])
+#define arbol_verga_obten_hijo_en_pos(nodo,pos) ((nodo)->hijos_arbol_verga_nodo[pos])
+#define arbol_verga_obten_hijo_izq(nodo, pos_llave) arbol_verga_obten_hijo_en_pos(nodo,pos_llave)
+#define arbol_verga_obten_hijo_der(nodo, pos_llave) arbol_verga_obten_hijo_en_pos(nodo,pos_llave+1)
 #define arbol_verga_obten_primer_hijo(nodo) (arbol_verga_obten_hijo_izq(nodo, 0))
 #define arbol_verga_obten_ultimo_hijo(nodo) (arbol_verga_obten_hijo_der(nodo,(nodo)->llaves_cnt_arbol_verga_nodo-1))
 #define arbol_verga_obten_llave_en_pos(nodo,pos) ((nodo)->llaves_arbol_verga_nodo[pos])
+#define arbol_verga_pon_llave_en_pos(nodo,pos,llave) (nodo)->llaves_arbol_verga_nodo[pos]=(llave)
+#define arbol_verga_pon_hijo_en_pos(nodo,pos,hijo) (nodo)->hijos_arbol_verga_nodo[pos]=(hijo)
 
 static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
@@ -719,12 +738,17 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_en_nodo(
 
 	assert_timeout(encontrada_llave);
 
+	caca_log_debug("la llave %p se encontro en %u", llave,
+			datos_llave->posicion_arbol_verga_datos_llave);
+
 	return arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave);
 }
 
 #endif
 
+#ifndef INCLUIDO_PRUEBA
 int main(void) {
 	puts("he corrido con algo de suerte"); /* prints he corrido con algo de suerte */
 	return EXIT_SUCCESS;
 }
+#endif

@@ -21,3 +21,14 @@ ltmain.sh
 missing
 *lai
 stamp*
+/build-aux/
+
+src/easyshit_btree
+*.libs*
+*.trs
+
+tests/check_easyshit_btree
+
+tests/check_easyshit_btree.log
+
+tests/test-suite.log
