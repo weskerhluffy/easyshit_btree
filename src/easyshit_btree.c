@@ -408,6 +408,14 @@ struct my_list* list_new(void) {
 	return p;
 }
 
+void list_print_element(const struct my_struct* p) {
+	if (p) {
+		printf("Num = %p\n", p->valor);
+	} else {
+		printf("Can not print NULL struct \n");
+	}
+}
+
 void list_print(const struct my_list* ps) {
 	struct my_struct* p = NULL;
 
@@ -420,13 +428,6 @@ void list_print(const struct my_list* ps) {
 	printf("------------------\n");
 }
 
-void list_print_element(const struct my_struct* p) {
-	if (p) {
-		printf("Num = %x\n", p->valor);
-	} else {
-		printf("Can not print NULL struct \n");
-	}
-}
 #endif
 
 #if 1
@@ -436,6 +437,7 @@ void list_print_element(const struct my_struct* p) {
 #define ARBOL_VERGA_MAX_HIJOS ARBOL_VERGA_MAX_LLAVES+1
 #define ARBOL_VERGA_MAX_NODOS_LIBRES 100000
 #define ARBOL_VERGA_IDX_INVALIDO CACA_COMUN_IDX_INVALIDO
+#define ARBOL_VERGA_APUNTADOR_INVALIDO ((void*)ULONG_LONG_MAX)
 
 typedef int (*arbol_verga_compara_llave_fn)(void *, void *);
 
@@ -462,8 +464,8 @@ static inline arbol_verga_ctx *arbol_verga_init(
 		arbol_verga_compara_llave_fn funcion_cmp) {
 	arbol_verga_ctx *ctx = NULL;
 
-	arbol_verga_ctx = calloc(1, sizeof(arbol_verga_ctx));
-	assert_timeout(arbol_verga_ctx);
+	ctx = calloc(1, sizeof(arbol_verga_ctx));
+	assert_timeout(ctx);
 
 	ctx->nodos_libres_arbol_verga_ctx = list_new();
 
@@ -500,12 +502,12 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 		arbol_verga_datos_llave *datos_llave) {
 	natural pos_llave = 0;
 	natural offset_hijo = 0;
-	void (*llaves)[ARBOL_VERGA_MAX_LLAVES = NULL];
-	struct arbol_verga_nodo (*hijos)[ARBOL_VERGA_MAX_HIJOS] = NULL;
+	void *(*llaves)[ARBOL_VERGA_MAX_LLAVES] = NULL;
+	arbol_verga_nodo *(*hijos)[ARBOL_VERGA_MAX_HIJOS] = NULL;
 	arbol_verga_nodo *huerfano = NULL;
 
-	llaves = nodo->llaves_arbol_verga_nodo;
-	hijos = nodo->hijos_arbol_verga_nodo;
+	llaves = &nodo->llaves_arbol_verga_nodo;
+	hijos = &nodo->hijos_arbol_verga_nodo;
 
 	pos_llave = datos_llave->posicion_arbol_verga_datos_llave;
 	if (!pos_llave) {
@@ -518,17 +520,18 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 			datos_llave->llave_arbol_verga_datos_llave == llaves[pos_llave]);
 
 	for (int i = pos_llave; i < nodo->llaves_cnt_arbol_verga_nodo - 1; i++) {
-		llaves[i] = llaves[i + 1];
+		(*llaves)[i] = (*llaves)[i + 1];
 	}
-	llaves[nodo->llaves_cnt_arbol_verga_nodo - 1] = ARBOL_VERGA_VALOR_INVALIDO;
+	(*llaves)[nodo->llaves_cnt_arbol_verga_nodo - 1] =
+	ARBOL_VERGA_APUNTADOR_INVALIDO;
 
-	huerfano = hijos[pos_llave + offset_hijo];
+	huerfano = (*hijos)[pos_llave + offset_hijo];
 	for (int i = pos_llave + offset_hijo;
 			i < nodo->llaves_cnt_arbol_verga_nodo + 1 - 1; i++) {
-		hijos[i] = hijos[i + 1];
+		(*hijos)[i] = (*hijos)[i + 1];
 	}
-	hijos[nodo->llaves_cnt_arbol_verga_nodo + 1 - 1] =
-	ARBOL_VERGA_VALOR_INVALIDO;
+	(*hijos)[nodo->llaves_cnt_arbol_verga_nodo + 1 - 1] =
+	ARBOL_VERGA_APUNTADOR_INVALIDO;
 
 	nodo->llaves_cnt_arbol_verga_nodo--;
 
@@ -538,12 +541,12 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *nodo, arbol_verga_datos_llave *datos_llave,
 		arbol_verga_nodo *nuevo_hijo) {
-	void (*llaves)[ARBOL_VERGA_MAX_LLAVES = NULL];
-	struct arbol_verga_nodo (*hijos)[ARBOL_VERGA_MAX_HIJOS] = NULL;
+	void *(*llaves)[ARBOL_VERGA_MAX_LLAVES] = NULL;
+	arbol_verga_nodo *(*hijos)[ARBOL_VERGA_MAX_HIJOS] = NULL;
 	natural offset_hijo = 0;
 
-	llaves = nodo->llaves_arbol_verga_nodo;
-	hijos = nodo->hijos_arbol_verga_nodo;
+	llaves = &nodo->llaves_arbol_verga_nodo;
+	hijos = &nodo->hijos_arbol_verga_nodo;
 
 	if (datos_llave->posicion_arbol_verga_datos_llave) {
 		offset_hijo = 1;
@@ -554,18 +557,18 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 	//TODO: Encuentra la pos d la llave
 	for (int i = nodo->llaves_cnt_arbol_verga_nodo;
 			i > datos_llave->posicion_arbol_verga_datos_llave; i--) {
-		llaves[i] = llaves[i - 1];
+		(*llaves)[i] = (*llaves)[i - 1];
 	}
-	llaves[datos_llave->posicion_arbol_verga_datos_llave] =
+	(*llaves)[datos_llave->posicion_arbol_verga_datos_llave] =
 			datos_llave->llave_arbol_verga_datos_llave;
 
 	for (int i = nodo->llaves_cnt_arbol_verga_nodo + 1;
 			i > datos_llave->posicion_arbol_verga_datos_llave + offset_hijo;
 			i--) {
-		hijos[i] = hijos[i - 1];
+		(*hijos)[i] = (*hijos)[i - 1];
 	}
 
-	hijos[datos_llave->posicion_arbol_verga_datos_llave + offset_hijo] =
+	(*hijos)[datos_llave->posicion_arbol_verga_datos_llave + offset_hijo] =
 			nuevo_hijo;
 
 	nodo->llaves_cnt_arbol_verga_nodo++;
@@ -603,7 +606,7 @@ static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 	assert_timeout(hijo_de_llave_en_padre == hijo_de_llave_en_padre_tmp);
 
 	arbol_verga_inserta_llave_datos_llave(ctx, padre,
-			&(arbol_verga_nodo ) { .llave_arbol_verga_datos_llave =
+			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							arbol_verga_obten_llave_en_pos(hijo_der, 0),
 							.posicion_arbol_verga_datos_llave =
 									datos_llave->posicion_arbol_verga_datos_llave },
@@ -611,7 +614,7 @@ static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 
 	arbol_verga_nodo *tmp = arbol_verga_obten_primer_hijo(hijo_der);
 	arbol_verga_nodo *tmp1 = arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
-			&(arbol_verga_nodo ) { .llave_arbol_verga_datos_llave =
+			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							arbol_verga_obten_llave_en_pos(hijo_der, 0),
 							.posicion_arbol_verga_datos_llave = 0 });
 
@@ -644,7 +647,7 @@ static inline void arbol_verga_rota_derecha(arbol_verga_ctx *ctx,
 	assert_timeout(hijo_de_llave_en_padre == hijo_de_llave_en_padre_tmp);
 
 	arbol_verga_inserta_llave_datos_llave(ctx, padre,
-			&(arbol_verga_nodo ) { .llave_arbol_verga_datos_llave =
+			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							arbol_verga_obten_llave_en_pos(hijo_izq,
 									hijo_izq->llaves_cnt_arbol_verga_nodo - 1),
 							.posicion_arbol_verga_datos_llave =
@@ -653,7 +656,7 @@ static inline void arbol_verga_rota_derecha(arbol_verga_ctx *ctx,
 
 	arbol_verga_nodo *tmp = arbol_verga_obten_ultimo_hijo(hijo_izq);
 	arbol_verga_nodo *tmp1 = arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
-			&(arbol_verga_nodo ) { .llave_arbol_verga_datos_llave =
+			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							arbol_verga_obten_llave_en_pos(hijo_izq,
 									hijo_izq->llaves_cnt_arbol_verga_nodo - 1),
 							.posicion_arbol_verga_datos_llave =
@@ -687,9 +690,9 @@ static inline bool arbol_verga_encuentra_llave_en_nodo(arbol_verga_ctx *ctx,
 
 static inline void arbol_verga_inserta_llave_en_nodo(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *nodo, void *llave, arbol_verga_nodo *nuevo_hijo) {
-	arbol_verga_datos_llave *datos_llave = (arbol_verga_datos_llave ) {
+	arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
 					.llave_arbol_verga_datos_llave =
-					ARBOL_VERGA_VALOR_INVALIDO,
+					ARBOL_VERGA_APUNTADOR_INVALIDO,
 					.posicion_arbol_verga_datos_llave =
 					ARBOL_VERGA_IDX_INVALIDO };
 	bool encontrada_llave = falso;
@@ -704,9 +707,9 @@ static inline void arbol_verga_inserta_llave_en_nodo(arbol_verga_ctx *ctx,
 
 static inline arbol_verga_nodo *arbol_verga_borra_llave_en_nodo(
 		arbol_verga_ctx *ctx, arbol_verga_nodo *nodo, void *llave) {
-	arbol_verga_datos_llave *datos_llave = (arbol_verga_datos_llave ) {
+	arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
 					.llave_arbol_verga_datos_llave =
-					ARBOL_VERGA_VALOR_INVALIDO,
+					ARBOL_VERGA_APUNTADOR_INVALIDO,
 					.posicion_arbol_verga_datos_llave =
 					ARBOL_VERGA_IDX_INVALIDO };
 	bool encontrada_llave = falso;
