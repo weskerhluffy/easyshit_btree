@@ -527,12 +527,13 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 	assert_timeout(
 			datos_llave->llave_arbol_verga_datos_llave == (*llaves)[pos_llave]);
 
-	caca_log_debug("borrando llave %p",
-			datos_llave->llave_arbol_verga_datos_llave);
+	caca_log_debug("borrando llave %p de pos %u",
+			datos_llave->llave_arbol_verga_datos_llave, pos_llave);
 
 	for (int i = pos_llave; i < nodo->llaves_cnt_arbol_verga_nodo - 1; i++) {
 		caca_log_debug("llave en pos %u antes era %p aora %p", i, (*llaves)[i],
 				(*llaves)[i+1]);
+		assert_timeout((*llaves)[i+1]!=ARBOL_VERGA_APUNTADOR_INVALIDO);
 		(*llaves)[i] = (*llaves)[i + 1];
 	}
 	(*llaves)[nodo->llaves_cnt_arbol_verga_nodo - 1] =
@@ -561,6 +562,10 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 	arbol_verga_nodo *(*hijos)[ARBOL_VERGA_MAX_HIJOS] = NULL;
 	natural offset_hijo = 0;
 
+	caca_log_debug("insertando %p en pos %u",
+			datos_llave->llave_arbol_verga_datos_llave,
+			datos_llave->posicion_arbol_verga_datos_llave);
+
 	llaves = &nodo->llaves_arbol_verga_nodo;
 	hijos = &nodo->hijos_arbol_verga_nodo;
 
@@ -570,13 +575,19 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 		offset_hijo = 0;
 	}
 
-	//TODO: Encuentra la pos d la llave
 	for (int i = nodo->llaves_cnt_arbol_verga_nodo;
 			i > datos_llave->posicion_arbol_verga_datos_llave; i--) {
+		caca_log_debug("pos %u tenia %p aora tiene llave %p", i, (*llaves)[i],
+				(*llaves)[i-1]);
+		assert_timeout((*llaves)[i-1]!=ARBOL_VERGA_APUNTADOR_INVALIDO);
 		(*llaves)[i] = (*llaves)[i - 1];
 	}
 	(*llaves)[datos_llave->posicion_arbol_verga_datos_llave] =
 			datos_llave->llave_arbol_verga_datos_llave;
+
+	caca_log_debug("llave %p insertada en %u",
+			datos_llave->llave_arbol_verga_datos_llave,
+			datos_llave->posicion_arbol_verga_datos_llave);
 
 	for (int i = nodo->llaves_cnt_arbol_verga_nodo + 1;
 			i > datos_llave->posicion_arbol_verga_datos_llave + offset_hijo;
@@ -598,12 +609,16 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 #define arbol_verga_obten_llave_en_pos(nodo,pos) ((nodo)->llaves_arbol_verga_nodo[pos])
 #define arbol_verga_pon_llave_en_pos(nodo,pos,llave) (nodo)->llaves_arbol_verga_nodo[pos]=(llave)
 #define arbol_verga_pon_hijo_en_pos(nodo,pos,hijo) (nodo)->hijos_arbol_verga_nodo[pos]=(hijo)
+#define arbol_verga_obten_primer_hijo(nodo) (arbol_verga_obten_hijo_izq(nodo, 0))
+#define arbol_verga_obten_primer_llave(nodo) (arbol_verga_obten_llave_en_pos(nodo,0))
+#define arbol_verga_obten_ultima_llave(nodo) (arbol_verga_obten_llave_en_pos(nodo,(nodo)->llaves_cnt_arbol_verga_nodo-1))
 
 static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
 		arbol_verga_nodo *hijo_der, arbol_verga_datos_llave *datos_llave) {
 	arbol_verga_nodo *hijo_de_llave_en_padre = NULL;
 
+	caca_log_debug("insertando en ijo izq");
 	arbol_verga_inserta_llave_datos_llave(ctx, hijo_izq,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							datos_llave->llave_arbol_verga_datos_llave,
@@ -619,11 +634,16 @@ static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 				datos_llave->posicion_arbol_verga_datos_llave);
 	}
 
+	caca_log_debug("borrando de padre");
 	arbol_verga_nodo *hijo_de_llave_en_padre_tmp =
 			arbol_verga_borra_llave_datos_llave(ctx, padre, datos_llave);
 
+	caca_log_debug("el hijo de llave esperado %p, el real %p",
+			hijo_de_llave_en_padre, hijo_de_llave_en_padre_tmp);
+
 	assert_timeout(hijo_de_llave_en_padre == hijo_de_llave_en_padre_tmp);
 
+	caca_log_debug("reinsertando en padre");
 	arbol_verga_inserta_llave_datos_llave(ctx, padre,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							arbol_verga_obten_llave_en_pos(hijo_der, 0),
@@ -632,6 +652,7 @@ static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 			hijo_de_llave_en_padre);
 
 	arbol_verga_nodo *tmp = arbol_verga_obten_primer_hijo(hijo_der);
+	caca_log_debug("borrando de hijo der");
 	arbol_verga_nodo *tmp1 = arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							arbol_verga_obten_llave_en_pos(hijo_der, 0),
