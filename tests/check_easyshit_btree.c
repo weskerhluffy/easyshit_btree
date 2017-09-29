@@ -463,6 +463,242 @@ START_TEST( test_arbol_verga_rotacion_der_final)
 				"la concha de la lora");
 	}END_TEST
 
+START_TEST( test_arbol_verga_mergear_primera_llave)
+	{
+		arbol_verga_nodo *padre;
+		arbol_verga_nodo *hijo_izq;
+		arbol_verga_nodo *hijo_der;
+
+		caca_log_debug("mergeando");
+		padre = ctx->raiz_arbol_verga_ctx;
+		natural pos_llave = 0;
+		hijo_izq = arbol_verga_obten_hijo_izq(padre, pos_llave);
+		hijo_der = arbol_verga_obten_hijo_der(padre, pos_llave);
+
+		arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
+						.llave_arbol_verga_datos_llave =
+								arbol_verga_obten_llave_en_pos(padre,
+										pos_llave),
+						.posicion_arbol_verga_datos_llave = pos_llave };
+
+		natural pos_a_borrar = 2;
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_izq,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		pos_a_borrar = arbol_verga_obten_ultima_pos_llave(hijo_izq);
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_izq,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		pos_a_borrar = 2;
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_der,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		pos_a_borrar = 0;
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_der,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		arbol_verga_nodo *hijo_der_orig = arbol_verga_alloca_nodo(ctx);
+		arbol_verga_nodo *hijo_izq_orig = arbol_verga_alloca_nodo(ctx);
+
+		*hijo_der_orig = *hijo_der;
+		*hijo_izq_orig = *hijo_izq;
+
+		arbol_verga_mergea_nodos(ctx, hijo_izq, padre, hijo_der, datos_llave);
+
+		bool llave_media_bien = verdadero;
+		bool llaves_hijo_izq_bien = verdadero;
+		bool llaves_hijo_der_bien = verdadero;
+		int i = 0;
+
+		for (i = 0; i <= arbol_verga_obten_ultima_pos_llave(hijo_izq_orig);
+				i++) {
+			llaves_hijo_izq_bien = llaves_hijo_izq_bien
+					&& (arbol_verga_obten_llave_en_pos(hijo_izq, i)
+							== arbol_verga_obten_llave_en_pos(hijo_izq_orig, i)
+							&& arbol_verga_obten_hijo_izq(hijo_izq, i)
+									== arbol_verga_obten_hijo_izq(hijo_izq, i));
+			caca_log_debug("hijo izq en idx %u %u", i, llaves_hijo_izq_bien);
+		}
+
+		llaves_hijo_izq_bien = llaves_hijo_izq_bien
+				&& (arbol_verga_obten_hijo_izq(hijo_izq, i)
+						== arbol_verga_obten_hijo_izq(hijo_izq, i));
+		caca_log_debug("hijo izq en idx %u %u", i, llaves_hijo_izq_bien);
+
+		llave_media_bien = datos_llave->llave_arbol_verga_datos_llave
+				== arbol_verga_obten_llave_en_pos(hijo_izq, i);
+
+		caca_log_debug("llave media %u", llave_media_bien);
+
+		i++;
+
+		int j = 0;
+
+		for (j = 0; j <= arbol_verga_obten_ultima_pos_llave(hijo_der_orig);
+				j++) {
+			llaves_hijo_der_bien = llaves_hijo_der_bien
+					&& (arbol_verga_obten_llave_en_pos(hijo_izq, i)
+							== arbol_verga_obten_llave_en_pos(hijo_der_orig, j)
+							&& arbol_verga_obten_hijo_izq(hijo_izq, i)
+									== arbol_verga_obten_hijo_izq(hijo_der_orig,
+											j));
+			caca_log_debug("hijo der en idx %u %u", i, llaves_hijo_der_bien);
+
+			i++;
+		}
+		assert_timeout(i==arbol_verga_obten_ultima_pos_llave(hijo_izq)+1);
+
+		llaves_hijo_der_bien = llaves_hijo_der_bien
+				&& (arbol_verga_obten_hijo_izq(hijo_izq, i)
+						== arbol_verga_obten_hijo_izq(hijo_der_orig, j));
+		caca_log_debug("hijo der en idx %u %u", i, llaves_hijo_der_bien);
+
+		arbol_verga_datos_llave *datos_llave_tmp = &(arbol_verga_datos_llave ) {
+						0 };
+
+		bool llave_enc = arbol_verga_encuentra_llave_en_nodo(ctx, padre,
+				datos_llave->llave_arbol_verga_datos_llave, datos_llave_tmp);
+
+		ck_assert_msg(
+				llaves_hijo_izq_bien && llave_media_bien
+						&& llaves_hijo_der_bien, "caca");
+
+	}END_TEST
+
+START_TEST( test_arbol_verga_mergear_ultima_llave)
+	{
+		arbol_verga_nodo *padre;
+		arbol_verga_nodo *hijo_izq;
+		arbol_verga_nodo *hijo_der;
+
+		caca_log_debug("mergeando");
+		padre = ctx->raiz_arbol_verga_ctx;
+		natural pos_llave = arbol_verga_obten_ultima_pos_llave(padre);
+		hijo_izq = arbol_verga_obten_hijo_izq(padre, pos_llave);
+		hijo_der = arbol_verga_obten_hijo_der(padre, pos_llave);
+
+		arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
+						.llave_arbol_verga_datos_llave =
+								arbol_verga_obten_llave_en_pos(padre,
+										pos_llave),
+						.posicion_arbol_verga_datos_llave = pos_llave };
+
+		natural pos_a_borrar = 2;
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_izq,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		pos_a_borrar = arbol_verga_obten_ultima_pos_llave(hijo_izq);
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_izq,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		pos_a_borrar = 2;
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_der,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		pos_a_borrar = 0;
+		arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
+				&(arbol_verga_datos_llave ) {
+								.llave_arbol_verga_datos_llave =
+										arbol_verga_obten_llave_en_pos(hijo_der,
+												pos_a_borrar),
+								.posicion_arbol_verga_datos_llave = pos_a_borrar });
+
+		arbol_verga_nodo *hijo_der_orig = arbol_verga_alloca_nodo(ctx);
+		arbol_verga_nodo *hijo_izq_orig = arbol_verga_alloca_nodo(ctx);
+
+		*hijo_der_orig = *hijo_der;
+		*hijo_izq_orig = *hijo_izq;
+
+		arbol_verga_mergea_nodos(ctx, hijo_izq, padre, hijo_der, datos_llave);
+
+		bool llave_media_bien = verdadero;
+		bool llaves_hijo_izq_bien = verdadero;
+		bool llaves_hijo_der_bien = verdadero;
+		int i = 0;
+
+		for (i = 0; i <= arbol_verga_obten_ultima_pos_llave(hijo_izq_orig);
+				i++) {
+			llaves_hijo_izq_bien = llaves_hijo_izq_bien
+					&& (arbol_verga_obten_llave_en_pos(hijo_izq, i)
+							== arbol_verga_obten_llave_en_pos(hijo_izq_orig, i)
+							&& arbol_verga_obten_hijo_izq(hijo_izq, i)
+									== arbol_verga_obten_hijo_izq(hijo_izq, i));
+			caca_log_debug("hijo izq en idx %u %u", i, llaves_hijo_izq_bien);
+		}
+
+		llaves_hijo_izq_bien = llaves_hijo_izq_bien
+				&& (arbol_verga_obten_hijo_izq(hijo_izq, i)
+						== arbol_verga_obten_hijo_izq(hijo_izq, i));
+		caca_log_debug("hijo izq en idx %u %u", i, llaves_hijo_izq_bien);
+
+		llave_media_bien = datos_llave->llave_arbol_verga_datos_llave
+				== arbol_verga_obten_llave_en_pos(hijo_izq, i);
+
+		caca_log_debug("llave media %u", llave_media_bien);
+
+		i++;
+
+		int j = 0;
+
+		for (j = 0; j <= arbol_verga_obten_ultima_pos_llave(hijo_der_orig);
+				j++) {
+			llaves_hijo_der_bien = llaves_hijo_der_bien
+					&& (arbol_verga_obten_llave_en_pos(hijo_izq, i)
+							== arbol_verga_obten_llave_en_pos(hijo_der_orig, j)
+							&& arbol_verga_obten_hijo_izq(hijo_izq, i)
+									== arbol_verga_obten_hijo_izq(hijo_der_orig,
+											j));
+			caca_log_debug("hijo der en idx %u %u", i, llaves_hijo_der_bien);
+
+			i++;
+		}
+		assert_timeout(i==arbol_verga_obten_ultima_pos_llave(hijo_izq)+1);
+
+		llaves_hijo_der_bien = llaves_hijo_der_bien
+				&& (arbol_verga_obten_hijo_izq(hijo_izq, i)
+						== arbol_verga_obten_hijo_izq(hijo_der_orig, j));
+		caca_log_debug("hijo der en idx %u %u", i, llaves_hijo_der_bien);
+
+		arbol_verga_datos_llave *datos_llave_tmp = &(arbol_verga_datos_llave ) {
+						0 };
+
+		bool llave_enc = arbol_verga_encuentra_llave_en_nodo(ctx, padre,
+				datos_llave->llave_arbol_verga_datos_llave, datos_llave_tmp);
+
+		ck_assert_msg(
+				llaves_hijo_izq_bien && llave_media_bien
+						&& llaves_hijo_der_bien, "caca");
+
+	}END_TEST
+
 Suite *
 cacacomun_suite(void) {
 
@@ -488,6 +724,8 @@ cacacomun_suite(void) {
 	tcase_add_test(tc_rota, test_arbol_verga_rotacion_izq_final);
 	tcase_add_test(tc_rota, test_arbol_verga_rotacion_der_primer);
 	tcase_add_test(tc_rota, test_arbol_verga_rotacion_der_final);
+	tcase_add_test(tc_rota, test_arbol_verga_mergear_primera_llave);
+	tcase_add_test(tc_rota, test_arbol_verga_mergear_ultima_llave);
 	suite_add_tcase(s, tc_rota);
 
 	return s;

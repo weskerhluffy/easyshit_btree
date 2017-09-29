@@ -501,6 +501,8 @@ static inline arbol_verga_nodo *arbol_verga_alloca_nodo(arbol_verga_ctx *ctx) {
 
 static inline void arbol_verga_libera_nodo(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *nodo) {
+
+	memset(nodo, ARBOL_VERGA_VALOR_INVALIDO, sizeof(arbol_verga_nodo));
 	list_add_element(ctx->nodos_libres_arbol_verga_ctx, nodo);
 	ctx->nodos_libres_cnt_arbol_verga_ctx++;
 }
@@ -616,6 +618,9 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 #define arbol_verga_obten_primer_hijo(nodo) (arbol_verga_obten_hijo_izq(nodo, 0))
 #define arbol_verga_obten_primer_llave(nodo) (arbol_verga_obten_llave_en_pos(nodo,0))
 #define arbol_verga_obten_ultima_llave(nodo) (arbol_verga_obten_llave_en_pos(nodo,(nodo)->llaves_cnt_arbol_verga_nodo-1))
+#define arbol_verga_obten_ultima_pos_llave(nodo) ((nodo)->llaves_cnt_arbol_verga_nodo-1)
+#define arbol_verga_pon_hijo_izq_en_pos(nodo,pos,hijo) arbol_verga_pon_hijo_en_pos(nodo,pos,hijo)
+#define arbol_verga_pon_hijo_der_en_pos(nodo,pos,hijo) arbol_verga_pon_hijo_en_pos(nodo,pos+1,hijo)
 
 static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
@@ -726,7 +731,7 @@ static inline bool arbol_verga_encuentra_llave_en_nodo(arbol_verga_ctx *ctx,
 		}
 	}
 
-	assert_timeout(idx < nodo->llaves_cnt_arbol_verga_nodo);
+//	assert_timeout(idx < nodo->llaves_cnt_arbol_verga_nodo);
 
 	datos_llave->llave_arbol_verga_datos_llave = llave;
 	datos_llave->posicion_arbol_verga_datos_llave = idx;
@@ -769,6 +774,32 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_en_nodo(
 			datos_llave->posicion_arbol_verga_datos_llave);
 
 	return arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave);
+}
+
+#define arbol_verga_inserta_al_final_con_datos_llave(ctx,nodo,llave, nuevo_hijo) \
+	arbol_verga_inserta_llave_datos_llave(ctx, nodo, \
+										 &(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave = llave, \
+																	  .posicion_arbol_verga_datos_llave =arbol_verga_obten_ultima_pos_llave(nodo) +1}, \
+										 nuevo_hijo)
+
+static inline void arbol_verga_mergea_nodos(arbol_verga_ctx *ctx,
+		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
+		arbol_verga_nodo *hijo_der, arbol_verga_datos_llave *datos_llave) {
+	arbol_verga_inserta_al_final_con_datos_llave(ctx, hijo_izq,
+			datos_llave->llave_arbol_verga_datos_llave,
+			arbol_verga_obten_primer_hijo(hijo_der));
+
+	for (int i = 0; i <= arbol_verga_obten_ultima_pos_llave(hijo_der); i++) {
+		arbol_verga_inserta_al_final_con_datos_llave(ctx, hijo_izq,
+				arbol_verga_obten_llave_en_pos(hijo_der,i),
+				arbol_verga_obten_hijo_der(hijo_der,i));
+	}
+
+	arbol_verga_borra_llave_datos_llave(ctx, padre, datos_llave);
+
+	arbol_verga_pon_hijo_izq_en_pos(padre, 0, hijo_izq);
+
+	arbol_verga_libera_nodo(ctx, hijo_der);
 }
 
 #endif
