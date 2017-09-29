@@ -518,12 +518,16 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 	hijos = &nodo->hijos_arbol_verga_nodo;
 
 	pos_llave = datos_llave->posicion_arbol_verga_datos_llave;
-	if (!pos_llave) {
+	if (!pos_llave && nodo->llaves_cnt_arbol_verga_nodo > 1) {
 		offset_hijo = 0;
 	} else {
 		offset_hijo = 1;
 	}
 
+	caca_log_debug(
+			"la llave a borrar %p, supone estar en pos %u, lo q realmente ai %p",
+			datos_llave->llave_arbol_verga_datos_llave, pos_llave,
+			(*llaves)[pos_llave]);
 	assert_timeout(
 			datos_llave->llave_arbol_verga_datos_llave == (*llaves)[pos_llave]);
 
@@ -688,19 +692,21 @@ static inline void arbol_verga_rota_derecha(arbol_verga_ctx *ctx,
 
 	arbol_verga_inserta_llave_datos_llave(ctx, padre,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
-							arbol_verga_obten_llave_en_pos(hijo_izq,
-									hijo_izq->llaves_cnt_arbol_verga_nodo - 1),
+							arbol_verga_obten_ultima_llave(hijo_izq),
 							.posicion_arbol_verga_datos_llave =
 									datos_llave->posicion_arbol_verga_datos_llave },
 			hijo_de_llave_en_padre);
 
 	arbol_verga_nodo *tmp = arbol_verga_obten_ultimo_hijo(hijo_izq);
-	arbol_verga_nodo *tmp1 = arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
-			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
-							arbol_verga_obten_llave_en_pos(hijo_izq,
-									hijo_izq->llaves_cnt_arbol_verga_nodo - 1),
-							.posicion_arbol_verga_datos_llave =
-									hijo_izq->llaves_cnt_arbol_verga_nodo });
+	arbol_verga_nodo *tmp1 =
+			arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
+					&(arbol_verga_datos_llave ) {
+									.llave_arbol_verga_datos_llave =
+											arbol_verga_obten_ultima_llave(
+													hijo_izq),
+									.posicion_arbol_verga_datos_llave =
+											hijo_izq->llaves_cnt_arbol_verga_nodo
+													- 1 });
 
 	assert_timeout(tmp == tmp1);
 }

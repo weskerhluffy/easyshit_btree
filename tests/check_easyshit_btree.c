@@ -236,6 +236,233 @@ START_TEST( test_arbol_verga_rotacion_izq_primer)
 				"la concha de la lora");
 	}END_TEST
 
+START_TEST( test_arbol_verga_rotacion_izq_final)
+	{
+		arbol_verga_nodo *padre;
+		arbol_verga_nodo *hijo_izq;
+		arbol_verga_nodo *hijo_der;
+
+		padre = ctx->raiz_arbol_verga_ctx;
+		natural pos_llave = padre->llaves_cnt_arbol_verga_nodo - 1;
+		hijo_izq = arbol_verga_obten_hijo_izq(padre, pos_llave);
+		hijo_der = arbol_verga_obten_hijo_der(padre, pos_llave);
+		caca_log_debug("obtenidos ijos");
+
+		arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
+						.llave_arbol_verga_datos_llave =
+								arbol_verga_obten_llave_en_pos(padre,
+										pos_llave),
+						.posicion_arbol_verga_datos_llave = pos_llave };
+
+		void *ultima_llave_hijo_izq_esperada = NULL;
+		arbol_verga_nodo *ultimo_hijo_hijo_izq_esperado = NULL;
+		void *llave_padre_esperada = NULL;
+		void *primer_llave_hijo_der_esperada = NULL;
+		arbol_verga_nodo *primer_hijo_hijo_der_esperado = NULL;
+
+		void *ultima_llave_hijo_izq = NULL;
+		arbol_verga_nodo *ultimo_hijo_hijo_izq = NULL;
+		void *llave_padre = NULL;
+		void *primer_llave_hijo_der = NULL;
+		arbol_verga_nodo *primer_hijo_hijo_der = NULL;
+
+		bool hijo_izq_bien;
+		bool hijo_der_bien;
+		bool padre_bien;
+
+		ultima_llave_hijo_izq_esperada =
+				datos_llave->llave_arbol_verga_datos_llave;
+		ultimo_hijo_hijo_izq_esperado = arbol_verga_obten_primer_hijo(hijo_der);
+
+		llave_padre_esperada = arbol_verga_obten_primer_llave(hijo_der);
+
+		primer_llave_hijo_der_esperada = arbol_verga_obten_llave_en_pos(
+				hijo_der, 1);
+		primer_hijo_hijo_der_esperado = arbol_verga_obten_hijo_der(hijo_der, 1);
+
+		// ACA sta lo meor bueno
+		arbol_verga_rota_izquierda(ctx, hijo_izq, padre, hijo_der, datos_llave);
+
+		ultima_llave_hijo_izq = arbol_verga_obten_ultima_llave(hijo_izq);
+		ultimo_hijo_hijo_izq = arbol_verga_obten_ultimo_hijo(hijo_izq);
+
+		llave_padre = arbol_verga_obten_primer_llave(hijo_der);
+
+		primer_llave_hijo_der = arbol_verga_obten_primer_llave(hijo_der);
+		primer_hijo_hijo_der = arbol_verga_obten_primer_hijo(hijo_der);
+
+		hijo_izq_bien = ultima_llave_hijo_izq == ultima_llave_hijo_izq_esperada
+				&& ultimo_hijo_hijo_izq_esperado == ultimo_hijo_hijo_izq;
+
+		caca_log_debug("ijo izq llave esp %p real %p, hijo esp %p real %p",
+				ultima_llave_hijo_izq_esperada, ultima_llave_hijo_izq,
+				ultimo_hijo_hijo_izq_esperado, ultimo_hijo_hijo_izq);
+
+		padre_bien = llave_padre == llave_padre_esperada;
+
+		caca_log_debug("llave padre %u", padre_bien);
+
+		hijo_der_bien = primer_hijo_hijo_der = primer_hijo_hijo_der_esperado
+				&& primer_llave_hijo_der == primer_llave_hijo_der_esperada;
+
+		caca_log_debug("ijo der %u", hijo_der_bien);
+
+		ck_assert_msg(hijo_izq_bien && padre && hijo_der_bien,
+				"la concha de la lora");
+	}END_TEST
+
+START_TEST( test_arbol_verga_rotacion_der_primer)
+	{
+		arbol_verga_nodo *padre;
+		arbol_verga_nodo *hijo_izq;
+		arbol_verga_nodo *hijo_der;
+
+		caca_log_debug("rotande der prime");
+		natural pos_llave = 0;
+		padre = ctx->raiz_arbol_verga_ctx;
+		hijo_izq = arbol_verga_obten_hijo_izq(padre, pos_llave);
+		hijo_der = arbol_verga_obten_hijo_der(padre, pos_llave);
+
+		arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
+						.llave_arbol_verga_datos_llave =
+								arbol_verga_obten_llave_en_pos(padre,
+										pos_llave),
+						.posicion_arbol_verga_datos_llave = pos_llave };
+
+		void *primer_llave_hijo_der_esperada = NULL;
+		arbol_verga_nodo *primer_hijo_hijo_der_esperado = NULL;
+		void *llave_padre_esperada = NULL;
+		void *ultima_llave_hijo_izq_esperada = NULL;
+		arbol_verga_nodo *ultimo_hijo_hijo_izq_esperado = NULL;
+
+		void *primer_llave_hijo_der = NULL;
+		arbol_verga_nodo *primer_hijo_hijo_der = NULL;
+		void *llave_padre = NULL;
+		void *ultima_llave_hijo_izq = NULL;
+		arbol_verga_nodo *ultimo_hijo_hijo_izq = NULL;
+
+		bool hijo_izq_bien;
+		bool hijo_der_bien;
+		bool padre_bien;
+
+		primer_llave_hijo_der_esperada =
+				datos_llave->llave_arbol_verga_datos_llave;
+		primer_hijo_hijo_der_esperado = arbol_verga_obten_ultimo_hijo(hijo_izq);
+
+		llave_padre_esperada = arbol_verga_obten_primer_llave(hijo_der);
+
+		ultima_llave_hijo_izq_esperada = arbol_verga_obten_llave_en_pos(
+				hijo_izq, hijo_izq->llaves_cnt_arbol_verga_nodo - 2);
+		ultimo_hijo_hijo_izq_esperado = arbol_verga_obten_hijo_der(hijo_izq,
+				hijo_izq->llaves_cnt_arbol_verga_nodo - 2);
+
+		// ACA sta lo meor bueno
+		arbol_verga_rota_derecha(ctx, hijo_izq, padre, hijo_der, datos_llave);
+
+		ultima_llave_hijo_izq = arbol_verga_obten_ultima_llave(hijo_izq);
+		ultimo_hijo_hijo_izq = arbol_verga_obten_ultimo_hijo(hijo_izq);
+
+		llave_padre = arbol_verga_obten_primer_llave(hijo_der);
+
+		primer_llave_hijo_der = arbol_verga_obten_primer_llave(hijo_der);
+		primer_hijo_hijo_der = arbol_verga_obten_primer_hijo(hijo_der);
+
+		hijo_izq_bien = ultima_llave_hijo_izq == ultima_llave_hijo_izq_esperada
+				&& ultimo_hijo_hijo_izq_esperado == ultimo_hijo_hijo_izq;
+
+		caca_log_debug("ijo izq llave esp %p real %p, hijo esp %p real %p",
+				ultima_llave_hijo_izq_esperada, ultima_llave_hijo_izq,
+				ultimo_hijo_hijo_izq_esperado, ultimo_hijo_hijo_izq);
+
+		padre_bien = llave_padre == llave_padre_esperada;
+
+		caca_log_debug("llave padre %u", padre_bien);
+
+		hijo_der_bien = primer_hijo_hijo_der = primer_hijo_hijo_der_esperado
+				&& primer_llave_hijo_der == primer_llave_hijo_der_esperada;
+
+		caca_log_debug("ijo der %u", hijo_der_bien);
+
+		ck_assert_msg(hijo_izq_bien && padre && hijo_der_bien,
+				"la concha de la lora");
+	}END_TEST
+
+START_TEST( test_arbol_verga_rotacion_der_final)
+	{
+		arbol_verga_nodo *padre;
+		arbol_verga_nodo *hijo_izq;
+		arbol_verga_nodo *hijo_der;
+
+		caca_log_debug("rotande der prime");
+		padre = ctx->raiz_arbol_verga_ctx;
+		natural pos_llave = padre->llaves_cnt_arbol_verga_nodo - 1;
+		hijo_izq = arbol_verga_obten_hijo_izq(padre, pos_llave);
+		hijo_der = arbol_verga_obten_hijo_der(padre, pos_llave);
+
+		arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
+						.llave_arbol_verga_datos_llave =
+								arbol_verga_obten_llave_en_pos(padre,
+										pos_llave),
+						.posicion_arbol_verga_datos_llave = pos_llave };
+
+		void *primer_llave_hijo_der_esperada = NULL;
+		arbol_verga_nodo *primer_hijo_hijo_der_esperado = NULL;
+		void *llave_padre_esperada = NULL;
+		void *ultima_llave_hijo_izq_esperada = NULL;
+		arbol_verga_nodo *ultimo_hijo_hijo_izq_esperado = NULL;
+
+		void *primer_llave_hijo_der = NULL;
+		arbol_verga_nodo *primer_hijo_hijo_der = NULL;
+		void *llave_padre = NULL;
+		void *ultima_llave_hijo_izq = NULL;
+		arbol_verga_nodo *ultimo_hijo_hijo_izq = NULL;
+
+		bool hijo_izq_bien;
+		bool hijo_der_bien;
+		bool padre_bien;
+
+		primer_llave_hijo_der_esperada =
+				datos_llave->llave_arbol_verga_datos_llave;
+		primer_hijo_hijo_der_esperado = arbol_verga_obten_ultimo_hijo(hijo_izq);
+
+		llave_padre_esperada = arbol_verga_obten_primer_llave(hijo_der);
+
+		ultima_llave_hijo_izq_esperada = arbol_verga_obten_llave_en_pos(
+				hijo_izq, hijo_izq->llaves_cnt_arbol_verga_nodo - 2);
+		ultimo_hijo_hijo_izq_esperado = arbol_verga_obten_hijo_der(hijo_izq,
+				hijo_izq->llaves_cnt_arbol_verga_nodo - 2);
+
+		// ACA sta lo meor bueno
+		arbol_verga_rota_derecha(ctx, hijo_izq, padre, hijo_der, datos_llave);
+
+		ultima_llave_hijo_izq = arbol_verga_obten_ultima_llave(hijo_izq);
+		ultimo_hijo_hijo_izq = arbol_verga_obten_ultimo_hijo(hijo_izq);
+
+		llave_padre = arbol_verga_obten_primer_llave(hijo_der);
+
+		primer_llave_hijo_der = arbol_verga_obten_primer_llave(hijo_der);
+		primer_hijo_hijo_der = arbol_verga_obten_primer_hijo(hijo_der);
+
+		hijo_izq_bien = ultima_llave_hijo_izq == ultima_llave_hijo_izq_esperada
+				&& ultimo_hijo_hijo_izq_esperado == ultimo_hijo_hijo_izq;
+
+		caca_log_debug("ijo izq llave esp %p real %p, hijo esp %p real %p",
+				ultima_llave_hijo_izq_esperada, ultima_llave_hijo_izq,
+				ultimo_hijo_hijo_izq_esperado, ultimo_hijo_hijo_izq);
+
+		padre_bien = llave_padre == llave_padre_esperada;
+
+		caca_log_debug("llave padre %u", padre_bien);
+
+		hijo_der_bien = primer_hijo_hijo_der = primer_hijo_hijo_der_esperado
+				&& primer_llave_hijo_der == primer_llave_hijo_der_esperada;
+
+		caca_log_debug("ijo der %u", hijo_der_bien);
+
+		ck_assert_msg(hijo_izq_bien && padre && hijo_der_bien,
+				"la concha de la lora");
+	}END_TEST
+
 Suite *
 cacacomun_suite(void) {
 
@@ -258,6 +485,9 @@ cacacomun_suite(void) {
 	tcase_add_unchecked_fixture(tc_rota, setup, teardown);
 	tcase_add_checked_fixture(tc_rota, crea_tercia_de_nodos, nada);
 	tcase_add_test(tc_rota, test_arbol_verga_rotacion_izq_primer);
+	tcase_add_test(tc_rota, test_arbol_verga_rotacion_izq_final);
+	tcase_add_test(tc_rota, test_arbol_verga_rotacion_der_primer);
+	tcase_add_test(tc_rota, test_arbol_verga_rotacion_der_final);
 	suite_add_tcase(s, tc_rota);
 
 	return s;
