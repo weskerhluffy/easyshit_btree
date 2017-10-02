@@ -699,6 +699,242 @@ START_TEST( test_arbol_verga_mergear_ultima_llave)
 
 	}END_TEST
 
+START_TEST( test_arbol_verga_mergea_y_promueve_primero)
+	{
+		natural pos_split = 0;
+		natural pos_media_hijo_split = ARBOL_VERGA_POSICION_MEDIA_LLAVES;
+
+		caca_log_debug("separando caca en pos %u, la pos media es %u",
+				pos_split, pos_media_hijo_split);
+
+		arbol_verga_nodo *nodo_split = NULL;
+		arbol_verga_nodo *hijo_izq = NULL;
+		arbol_verga_nodo *hijo_der = NULL;
+
+		nodo_split = arbol_verga_obten_hijo_en_pos(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		arbol_verga_inserta_llave_datos_llave(ctx, nodo_split,
+				arbol_verga_datos_genera_datos_llave_local(
+						arbol_verga_obten_ultima_llave(nodo_split)+1,
+						nodo_split->llaves_cnt_arbol_verga_nodo),
+				arbol_verga_obten_ultimo_hijo(nodo_split) + 1);
+
+		arbol_verga_nodo *hijo_izq_ultima_llave_esp = NULL;
+		void *hijo_izq_ultimo_hijo_esp = NULL;
+		arbol_verga_nodo *padre_llave_promovida_esp = NULL;
+		arbol_verga_nodo *hijo_der_primer_llave_esp = NULL;
+		void *hijo_der_primer_hijo_esp = NULL;
+
+		arbol_verga_nodo *hijo_izq_ultima_llave = NULL;
+		void *hijo_izq_ultimo_hijo = NULL;
+		arbol_verga_nodo *padre_llave_promovida = NULL;
+		arbol_verga_nodo *hijo_der_primer_llave = NULL;
+		void *hijo_der_primer_hijo = NULL;
+
+		hijo_izq_ultima_llave_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split - 1);
+		hijo_izq_ultimo_hijo_esp = arbol_verga_obten_hijo_der(nodo_split,
+				pos_media_hijo_split - 1);
+
+		padre_llave_promovida_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split);
+
+		hijo_der_primer_llave_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split + 1);
+		hijo_der_primer_hijo_esp = arbol_verga_obten_hijo_izq(nodo_split,
+				pos_media_hijo_split + 1);
+
+		arbol_verga_separa_y_promueve(ctx, ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		hijo_izq = arbol_verga_obten_hijo_izq(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+		hijo_der = arbol_verga_obten_hijo_der(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		hijo_izq_ultima_llave = arbol_verga_obten_ultima_llave(hijo_izq);
+		hijo_izq_ultimo_hijo = arbol_verga_obten_ultimo_hijo(hijo_izq);
+		ck_assert_msg(
+				hijo_izq_ultima_llave == hijo_izq_ultima_llave_esp
+						&& hijo_izq_ultimo_hijo == hijo_izq_ultimo_hijo_esp,
+				"hijo izq faio, llave %p, esp %p, hijo %p, esp %p",
+				hijo_izq_ultima_llave, hijo_izq_ultima_llave_esp,
+				hijo_izq_ultimo_hijo, hijo_izq_ultimo_hijo_esp);
+
+		padre_llave_promovida = arbol_verga_obten_llave_en_pos(
+				ctx->raiz_arbol_verga_ctx, pos_split);
+		ck_assert_msg(padre_llave_promovida == padre_llave_promovida_esp,
+				"llave promovida faio %p esp %p", padre_llave_promovida,
+				padre_llave_promovida_esp);
+
+		hijo_der_primer_llave = arbol_verga_obten_primer_llave(hijo_der);
+		hijo_der_primer_hijo = arbol_verga_obten_primer_hijo(hijo_der);
+		ck_assert_msg(
+				hijo_der_primer_llave == hijo_der_primer_llave_esp
+						&& hijo_der_primer_hijo == hijo_der_primer_hijo_esp,
+				"hijo der faio");
+
+	}END_TEST
+
+START_TEST( test_arbol_verga_mergea_y_promueve_ultimo)
+	{
+		natural pos_split = arbol_verga_obten_ultima_pos_llave(
+				ctx->raiz_arbol_verga_ctx);
+		natural pos_media_hijo_split = ARBOL_VERGA_POSICION_MEDIA_LLAVES;
+
+		caca_log_debug("separando caca en pos %u, la pos media es %u",
+				pos_split, pos_media_hijo_split);
+
+		arbol_verga_nodo *nodo_split = NULL;
+		arbol_verga_nodo *hijo_izq = NULL;
+		arbol_verga_nodo *hijo_der = NULL;
+
+		nodo_split = arbol_verga_obten_hijo_en_pos(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		arbol_verga_inserta_llave_datos_llave(ctx, nodo_split,
+				arbol_verga_datos_genera_datos_llave_local(
+						arbol_verga_obten_ultima_llave(nodo_split)+1,
+						nodo_split->llaves_cnt_arbol_verga_nodo),
+				arbol_verga_obten_ultimo_hijo(nodo_split) + 1);
+
+		arbol_verga_nodo *hijo_izq_ultima_llave_esp = NULL;
+		void *hijo_izq_ultimo_hijo_esp = NULL;
+		arbol_verga_nodo *padre_llave_promovida_esp = NULL;
+		arbol_verga_nodo *hijo_der_primer_llave_esp = NULL;
+		void *hijo_der_primer_hijo_esp = NULL;
+
+		arbol_verga_nodo *hijo_izq_ultima_llave = NULL;
+		void *hijo_izq_ultimo_hijo = NULL;
+		arbol_verga_nodo *padre_llave_promovida = NULL;
+		arbol_verga_nodo *hijo_der_primer_llave = NULL;
+		void *hijo_der_primer_hijo = NULL;
+
+		hijo_izq_ultima_llave_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split - 1);
+		hijo_izq_ultimo_hijo_esp = arbol_verga_obten_hijo_der(nodo_split,
+				pos_media_hijo_split - 1);
+
+		padre_llave_promovida_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split);
+
+		hijo_der_primer_llave_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split + 1);
+		hijo_der_primer_hijo_esp = arbol_verga_obten_hijo_izq(nodo_split,
+				pos_media_hijo_split + 1);
+
+		arbol_verga_separa_y_promueve(ctx, ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		hijo_izq = arbol_verga_obten_hijo_izq(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+		hijo_der = arbol_verga_obten_hijo_der(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		hijo_izq_ultima_llave = arbol_verga_obten_ultima_llave(hijo_izq);
+		hijo_izq_ultimo_hijo = arbol_verga_obten_ultimo_hijo(hijo_izq);
+		ck_assert_msg(
+				hijo_izq_ultima_llave == hijo_izq_ultima_llave_esp
+						&& hijo_izq_ultimo_hijo == hijo_izq_ultimo_hijo_esp,
+				"hijo izq faio, llave %p, esp %p, hijo %p, esp %p",
+				hijo_izq_ultima_llave, hijo_izq_ultima_llave_esp,
+				hijo_izq_ultimo_hijo, hijo_izq_ultimo_hijo_esp);
+
+		padre_llave_promovida = arbol_verga_obten_llave_en_pos(
+				ctx->raiz_arbol_verga_ctx, pos_split);
+		ck_assert_msg(padre_llave_promovida == padre_llave_promovida_esp,
+				"llave promovida faio %p esp %p", padre_llave_promovida,
+				padre_llave_promovida_esp);
+
+		hijo_der_primer_llave = arbol_verga_obten_primer_llave(hijo_der);
+		hijo_der_primer_hijo = arbol_verga_obten_primer_hijo(hijo_der);
+		ck_assert_msg(
+				hijo_der_primer_llave == hijo_der_primer_llave_esp
+						&& hijo_der_primer_hijo == hijo_der_primer_hijo_esp,
+				"hijo der faio");
+
+	}END_TEST
+
+START_TEST( test_arbol_verga_mergea_y_promueve_medio)
+	{
+		natural pos_split = arbol_verga_obten_ultima_pos_llave(
+				ctx->raiz_arbol_verga_ctx) / 2;
+		natural pos_media_hijo_split = ARBOL_VERGA_POSICION_MEDIA_LLAVES;
+
+		caca_log_debug("separando caca en pos %u, la pos media es %u",
+				pos_split, pos_media_hijo_split);
+
+		arbol_verga_nodo *nodo_split = NULL;
+		arbol_verga_nodo *hijo_izq = NULL;
+		arbol_verga_nodo *hijo_der = NULL;
+
+		nodo_split = arbol_verga_obten_hijo_en_pos(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		arbol_verga_inserta_llave_datos_llave(ctx, nodo_split,
+				arbol_verga_datos_genera_datos_llave_local(
+						arbol_verga_obten_ultima_llave(nodo_split)+1,
+						nodo_split->llaves_cnt_arbol_verga_nodo),
+				arbol_verga_obten_ultimo_hijo(nodo_split) + 1);
+
+		arbol_verga_nodo *hijo_izq_ultima_llave_esp = NULL;
+		void *hijo_izq_ultimo_hijo_esp = NULL;
+		arbol_verga_nodo *padre_llave_promovida_esp = NULL;
+		arbol_verga_nodo *hijo_der_primer_llave_esp = NULL;
+		void *hijo_der_primer_hijo_esp = NULL;
+
+		arbol_verga_nodo *hijo_izq_ultima_llave = NULL;
+		void *hijo_izq_ultimo_hijo = NULL;
+		arbol_verga_nodo *padre_llave_promovida = NULL;
+		arbol_verga_nodo *hijo_der_primer_llave = NULL;
+		void *hijo_der_primer_hijo = NULL;
+
+		hijo_izq_ultima_llave_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split - 1);
+		hijo_izq_ultimo_hijo_esp = arbol_verga_obten_hijo_der(nodo_split,
+				pos_media_hijo_split - 1);
+
+		padre_llave_promovida_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split);
+
+		hijo_der_primer_llave_esp = arbol_verga_obten_llave_en_pos(nodo_split,
+				pos_media_hijo_split + 1);
+		hijo_der_primer_hijo_esp = arbol_verga_obten_hijo_izq(nodo_split,
+				pos_media_hijo_split + 1);
+
+		arbol_verga_separa_y_promueve(ctx, ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		hijo_izq = arbol_verga_obten_hijo_izq(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+		hijo_der = arbol_verga_obten_hijo_der(ctx->raiz_arbol_verga_ctx,
+				pos_split);
+
+		hijo_izq_ultima_llave = arbol_verga_obten_ultima_llave(hijo_izq);
+		hijo_izq_ultimo_hijo = arbol_verga_obten_ultimo_hijo(hijo_izq);
+		ck_assert_msg(
+				hijo_izq_ultima_llave == hijo_izq_ultima_llave_esp
+						&& hijo_izq_ultimo_hijo == hijo_izq_ultimo_hijo_esp,
+				"hijo izq faio, llave %p, esp %p, hijo %p, esp %p",
+				hijo_izq_ultima_llave, hijo_izq_ultima_llave_esp,
+				hijo_izq_ultimo_hijo, hijo_izq_ultimo_hijo_esp);
+
+		padre_llave_promovida = arbol_verga_obten_llave_en_pos(
+				ctx->raiz_arbol_verga_ctx, pos_split);
+		ck_assert_msg(padre_llave_promovida == padre_llave_promovida_esp,
+				"llave promovida faio %p esp %p", padre_llave_promovida,
+				padre_llave_promovida_esp);
+
+		hijo_der_primer_llave = arbol_verga_obten_primer_llave(hijo_der);
+		hijo_der_primer_hijo = arbol_verga_obten_primer_hijo(hijo_der);
+		ck_assert_msg(
+				hijo_der_primer_llave == hijo_der_primer_llave_esp
+						&& hijo_der_primer_hijo == hijo_der_primer_hijo_esp,
+				"hijo der faio");
+
+	}END_TEST
+
 Suite *
 cacacomun_suite(void) {
 
@@ -711,7 +947,6 @@ cacacomun_suite(void) {
 
 	tcase_set_timeout(tc_core, 10);
 	tcase_add_test(tc_core, test_arbol_verga_init);
-//	tcase_add_test(tc_core, test_arbol_verga_construye_nodo);
 	tcase_add_test(tc_core, test_arbol_verga_borra_llave_inicial);
 	tcase_add_test(tc_core, test_arbol_verga_borra_llave_final);
 	tcase_add_test(tc_core, test_arbol_verga_borra_llave_medio);
@@ -726,6 +961,9 @@ cacacomun_suite(void) {
 	tcase_add_test(tc_rota, test_arbol_verga_rotacion_der_final);
 	tcase_add_test(tc_rota, test_arbol_verga_mergear_primera_llave);
 	tcase_add_test(tc_rota, test_arbol_verga_mergear_ultima_llave);
+	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_primero);
+	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_ultimo);
+	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_medio);
 	suite_add_tcase(s, tc_rota);
 
 	return s;
