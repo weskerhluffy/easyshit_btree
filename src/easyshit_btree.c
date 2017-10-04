@@ -1042,13 +1042,9 @@ static inline void arbol_verga_borra_llave(arbol_verga_ctx *ctx,
 }
 
 static inline void arbol_verga_separa(arbol_verga_ctx *ctx,
-		arbol_verga_nodo *nodo, natural posicion_hijo_a_separar,
-		arbol_verga_resultado_separar *resultado_sep) {
+		arbol_verga_nodo *nodo, arbol_verga_resultado_separar *resultado_sep) {
 	arbol_verga_nodo *nuevo_nodo = NULL;
-	arbol_verga_nodo *nodo_a_separar = arbol_verga_obten_hijo_en_pos(nodo,
-			posicion_hijo_a_separar);
-
-	caca_log_debug("separando nodo pos %u", posicion_hijo_a_separar);
+	arbol_verga_nodo *nodo_a_separar = nodo;
 
 	nuevo_nodo = arbol_verga_alloca_nodo(ctx);
 
@@ -1117,7 +1113,7 @@ static inline void arbol_verga_separa_y_promueve(arbol_verga_ctx *ctx,
 	nodo_a_separar = arbol_verga_obten_hijo_en_pos(nodo,
 			posicion_hijo_a_separar);
 
-	arbol_verga_separa(ctx, nodo, posicion_hijo_a_separar, resultado_sep);
+	arbol_verga_separa(ctx, nodo_a_separar, resultado_sep);
 
 	caca_log_debug("separado hijo %u", posicion_hijo_a_separar);
 
@@ -1194,24 +1190,38 @@ static inline void arbol_verga_inserta(arbol_verga_ctx *ctx, void *llave) {
 
 	raiz = ctx->raiz_arbol_verga_ctx;
 
+	caca_log_debug("insertando llave %p", llave);
+
 	if (!raiz) {
 		raiz = arbol_verga_alloca_nodo(ctx);
 		arbol_verga_inserta_llave_datos_llave(ctx, raiz,
 				arbol_verga_datos_genera_datos_llave_local(llave, 0),
 				ARBOL_VERGA_APUNTADOR_INVALIDO);
 		ctx->raiz_arbol_verga_ctx = raiz;
+		caca_log_debug("insertada directo en la raiz");
 
 	} else {
-		if (arbol_verga_nodo_es_hoja(ctx, raiz)) {
-			arbol_verga_inserta_llave_en_nodo(ctx, raiz, llave,
-			ARBOL_VERGA_APUNTADOR_INVALIDO);
+		if (arbol_verga_nodo_tiene_llaves_llenas(raiz)) {
+			arbol_verga_nodo *nueva_raiz = NULL;
+			arbol_verga_resultado_separar *resu_sep =
+					&(arbol_verga_resultado_separar ) { 0 };
 
-			if (arbol_verga_nodo_tiene_llaves_llenas(raiz)) {
-				arbol_verga_resultado_separar *resu_sep =
-						&(arbol_verga_resultado_separar ) { 0 };
-			}
+			arbol_verga_separa(ctx, raiz, resu_sep);
+
+			nueva_raiz = arbol_verga_alloca_nodo(ctx);
+
+			arbol_verga_inserta_llave_datos_llave(ctx, nueva_raiz,
+					arbol_verga_datos_genera_datos_llave_local(
+							resu_sep->llave_para_promover_arbol_verga_resultado_separar,
+							0), raiz);
+			arbol_verga_pon_hijo_der_en_pos(nueva_raiz, 0,
+					resu_sep->nodo_nuevo_arbol_verga_resultado_separar);
+
+			raiz = ctx->raiz_arbol_verga_ctx = nueva_raiz;
+			caca_log_debug("separada raiz, nueva tiene %u",
+					raiz->llaves_cnt_arbol_verga_nodo);
 		}
-
+		arbol_verga_inserta_recursivo(ctx, raiz, llave);
 	}
 }
 

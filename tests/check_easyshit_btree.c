@@ -935,6 +935,36 @@ START_TEST( test_arbol_verga_mergea_y_promueve_medio)
 
 	}END_TEST
 
+START_TEST( test_arbol_verga_inserta)
+	{
+		arbol_verga_inserta(ctx, 10);
+		arbol_verga_inserta(ctx, 20);
+		arbol_verga_inserta(ctx, 30);
+		arbol_verga_inserta(ctx, 40);
+		arbol_verga_inserta(ctx, 50);
+		arbol_verga_inserta(ctx, 60);
+		arbol_verga_inserta(ctx, 70);
+		arbol_verga_inserta(ctx, 80);
+		arbol_verga_inserta(ctx, 90);
+
+		arbol_verga_nodo *raiz;
+		arbol_verga_nodo *hijo1;
+		arbol_verga_nodo *hijo2;
+		arbol_verga_nodo *hijo3;
+
+		raiz = ctx->raiz_arbol_verga_ctx;
+		hijo1 = arbol_verga_obten_hijo_en_pos(raiz, 0);
+		hijo2 = arbol_verga_obten_hijo_en_pos(raiz, 1);
+		hijo3 = arbol_verga_obten_hijo_en_pos(raiz, 2);
+
+		ck_assert_msg(
+				arbol_verga_obten_llave_en_pos(raiz,0)==30 && arbol_verga_obten_llave_en_pos(raiz,1)==60,
+				"mierda raiz mala, esp en 0 30, real %d, espe en 1 60, real %p",
+				arbol_verga_obten_llave_en_pos(raiz,0),
+				arbol_verga_obten_llave_en_pos(raiz,1));
+
+	}END_TEST
+
 Suite *
 cacacomun_suite(void) {
 
@@ -965,6 +995,11 @@ cacacomun_suite(void) {
 	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_ultimo);
 	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_medio);
 	suite_add_tcase(s, tc_rota);
+
+	TCase *tc_i_b = tcase_create("inserciones,borrados");
+	tcase_add_unchecked_fixture(tc_i_b, setup, teardown);
+	tcase_add_test(tc_i_b, test_arbol_verga_inserta);
+	suite_add_tcase(s, tc_i_b);
 
 	return s;
 }
