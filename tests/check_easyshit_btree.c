@@ -965,6 +965,50 @@ START_TEST( test_arbol_verga_inserta)
 
 	}END_TEST
 
+START_TEST( test_arbol_verga_borrar_para_nuva_raiz)
+	{
+		arbol_verga_inserta(ctx, 10);
+		arbol_verga_inserta(ctx, 20);
+		arbol_verga_inserta(ctx, 30);
+		arbol_verga_inserta(ctx, 40);
+		arbol_verga_inserta(ctx, 50);
+
+		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 30);
+
+		arbol_verga_nodo *nueva_raiz = ctx->raiz_arbol_verga_ctx;
+
+		natural pos_act = 0;
+		ck_assert_msg(arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act)==10,
+				"posicion 0 no sta bien exp %d encontrada %d (%p)", 10,
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act),
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act));
+
+		pos_act = 1;
+		void *llave_esp = 20;
+		ck_assert_msg(
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act)==llave_esp,
+				"posicion %u no sta bien exp %d encontrada %d (%p)", pos_act,
+				llave_esp, arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act),
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act));
+
+		pos_act = 2;
+		llave_esp = 40;
+		ck_assert_msg(
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act)==llave_esp,
+				"posicion %u no sta bien exp %d encontrada %d (%p)", pos_act,
+				llave_esp, arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act),
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act));
+
+		pos_act = 3;
+		llave_esp = 50;
+		ck_assert_msg(
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act)==llave_esp,
+				"posicion %u no sta bien exp %d encontrada %d (%p)", pos_act,
+				llave_esp, arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act),
+				arbol_verga_obten_llave_en_pos(nueva_raiz,pos_act));
+
+	}END_TEST
+
 Suite *
 cacacomun_suite(void) {
 
@@ -999,6 +1043,7 @@ cacacomun_suite(void) {
 	TCase *tc_i_b = tcase_create("inserciones,borrados");
 	tcase_add_unchecked_fixture(tc_i_b, setup, teardown);
 	tcase_add_test(tc_i_b, test_arbol_verga_inserta);
+	tcase_add_test(tc_i_b, test_arbol_verga_borrar_para_nuva_raiz);
 	suite_add_tcase(s, tc_i_b);
 
 	return s;

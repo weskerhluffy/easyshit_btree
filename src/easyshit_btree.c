@@ -738,8 +738,8 @@ static inline bool arbol_verga_encuentra_llave_en_nodo(arbol_verga_ctx *ctx,
 		if (arbol_verga_obten_llave_en_pos(nodo,idx) >= llave) {
 			if (arbol_verga_obten_llave_en_pos(nodo,idx) == llave) {
 				encontrada = verdadero;
-				break;
 			}
+			break;
 		}
 	}
 
@@ -1153,7 +1153,9 @@ static inline void arbol_verga_inserta_recursivo(arbol_verga_ctx *ctx,
 				arbol_verga_datos_genera_datos_llave_local(
 						ARBOL_VERGA_APUNTADOR_INVALIDO,
 						ARBOL_VERGA_APUNTADOR_INVALIDO);
-		arbol_verga_encuentra_llave_en_nodo(ctx, nodo, llave, datos_llave);
+		bool llave_enc = arbol_verga_encuentra_llave_en_nodo(ctx, nodo, llave,
+				datos_llave);
+		assert_timeout(!llave_enc);
 		pos_sig_nodo_para_buscar =
 				datos_llave->posicion_arbol_verga_datos_llave;
 
