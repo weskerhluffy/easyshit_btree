@@ -494,6 +494,13 @@ static inline void arbol_verga_fini(arbol_verga_ctx *ctx) {
 	free(ctx);
 }
 
+static inline void arbol_verga_valida_hijos_invalidos(arbol_verga_ctx *ctx,
+		arbol_verga_nodo *nodo, natural inicio_hijos_invalidos) {
+	for (int i = inicio_hijos_invalidos; i < ARBOL_VERGA_MAX_HIJOS; i++) {
+		assert_timeout(
+				nodo->hijos_arbol_verga_nodo[i]==ARBOL_VERGA_APUNTADOR_INVALIDO);
+	}
+}
 static inline arbol_verga_nodo *arbol_verga_alloca_nodo(arbol_verga_ctx *ctx) {
 	arbol_verga_nodo *nodo = NULL;
 
@@ -501,6 +508,8 @@ static inline arbol_verga_nodo *arbol_verga_alloca_nodo(arbol_verga_ctx *ctx) {
 
 	assert_timeout(
 			nodo->llaves_cnt_arbol_verga_nodo==ARBOL_VERGA_VALOR_INVALIDO);
+
+	arbol_verga_valida_hijos_invalidos(ctx, nodo, 0);
 	ctx->nodos_libres_cnt_arbol_verga_ctx--;
 	nodo->llaves_cnt_arbol_verga_nodo = 0;
 
@@ -511,6 +520,7 @@ static inline void arbol_verga_libera_nodo(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *nodo) {
 
 	memset(nodo, ARBOL_VERGA_VALOR_INVALIDO, sizeof(arbol_verga_nodo));
+	arbol_verga_valida_hijos_invalidos(ctx, nodo, 0);
 	list_add_element(ctx->nodos_libres_arbol_verga_ctx, nodo);
 	ctx->nodos_libres_cnt_arbol_verga_ctx++;
 }
@@ -565,6 +575,9 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 	ARBOL_VERGA_APUNTADOR_INVALIDO;
 
 	nodo->llaves_cnt_arbol_verga_nodo--;
+
+	arbol_verga_valida_hijos_invalidos(ctx, nodo,
+			nodo->llaves_cnt_arbol_verga_nodo + 1);
 
 	return huerfano;
 }
@@ -623,6 +636,8 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 
 	nodo->llaves_cnt_arbol_verga_nodo++;
 	assert_timeout(nodo->llaves_cnt_arbol_verga_nodo<=ARBOL_VERGA_MAX_LLAVES);
+	arbol_verga_valida_hijos_invalidos(ctx, nodo,
+			nodo->llaves_cnt_arbol_verga_nodo + 1);
 }
 
 #define arbol_verga_obten_hijo_en_pos(nodo,pos) ((nodo)->hijos_arbol_verga_nodo[pos])
@@ -808,8 +823,10 @@ static inline void arbol_verga_mergea_nodos(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
 		arbol_verga_nodo *hijo_der, arbol_verga_datos_llave *datos_llave) {
 
-	assert_timeout(hijo_izq->llaves_cnt_arbol_verga_nodo<=ARBOL_VERGA_MIN_LLAVES);
-	assert_timeout(hijo_der->llaves_cnt_arbol_verga_nodo<=ARBOL_VERGA_MIN_LLAVES);
+	assert_timeout(
+			hijo_izq->llaves_cnt_arbol_verga_nodo<=ARBOL_VERGA_MIN_LLAVES);
+	assert_timeout(
+			hijo_der->llaves_cnt_arbol_verga_nodo<=ARBOL_VERGA_MIN_LLAVES);
 
 	arbol_verga_inserta_al_final_con_datos_llave(ctx, hijo_izq,
 			datos_llave->llave_arbol_verga_datos_llave,
@@ -1058,6 +1075,8 @@ static inline void arbol_verga_borra_llave(arbol_verga_ctx *ctx,
 			arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave);
 		}
 	}
+	arbol_verga_valida_hijos_invalidos(ctx, nodo,
+			nodo->llaves_cnt_arbol_verga_nodo + 1);
 }
 
 static inline void arbol_verga_separa(arbol_verga_ctx *ctx,
@@ -1206,6 +1225,9 @@ static inline void arbol_verga_inserta_recursivo(arbol_verga_ctx *ctx,
 
 		arbol_verga_inserta_recursivo(ctx, sig_nodo_para_buscar, llave);
 	}
+
+	arbol_verga_valida_hijos_invalidos(ctx, nodo,
+			nodo->llaves_cnt_arbol_verga_nodo + 1);
 }
 
 static inline void arbol_verga_inserta(arbol_verga_ctx *ctx, void *llave) {
@@ -1246,6 +1268,28 @@ static inline void arbol_verga_inserta(arbol_verga_ctx *ctx, void *llave) {
 		}
 		arbol_verga_inserta_recursivo(ctx, raiz, llave);
 	}
+}
+
+static inline void arbol_verga_dumpea_inorder_recursivo(arbol_verga_ctx *ctx,
+		arbol_verga_nodo *nodo, void *llaves, natural *llaves_cnt) {
+	int i;
+	if (nodo == ARBOL_VERGA_APUNTADOR_INVALIDO) {
+		return;
+	}
+	for (i = 0; i < nodo->llaves_cnt_arbol_verga_nodo; i++) {
+		arbol_verga_dumpea_inorder_recursivo(ctx,
+				arbol_verga_obten_hijo_en_pos(nodo, i), llaves, llaves_cnt);
+		printf("%u ", arbol_verga_obten_llave_en_pos(nodo, i));
+	}
+	arbol_verga_dumpea_inorder_recursivo(ctx,
+			arbol_verga_obten_hijo_en_pos(nodo, i), llaves, llaves_cnt);
+}
+
+static inline void arbol_verga_dumpea_inorder(arbol_verga_ctx *ctx,
+		void *llaves, natural *llaves_cnt) {
+	arbol_verga_dumpea_inorder_recursivo(ctx, ctx->raiz_arbol_verga_ctx, llaves,
+			llaves_cnt);
+	printf("\n");
 }
 
 #endif

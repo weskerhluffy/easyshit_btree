@@ -1011,10 +1011,12 @@ START_TEST( test_arbol_verga_borrar_para_nuva_raiz)
 
 START_TEST( test_arbol_verga_borrar_intermedio)
 	{
-		for (int i = 1; i <= 26; i++) {
+		for (int i = 26; i >= 1; i--) {
 			arbol_verga_inserta(ctx, i);
 		}
 		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 12);
+		arbol_verga_dumpea_inorder(ctx, NULL, NULL);
+		ck_assert_msg(falso,"caca");
 	}END_TEST
 
 Suite *
