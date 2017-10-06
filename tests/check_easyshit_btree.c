@@ -1009,6 +1009,14 @@ START_TEST( test_arbol_verga_borrar_para_nuva_raiz)
 
 	}END_TEST
 
+START_TEST( test_arbol_verga_borrar_intermedio)
+	{
+		for (int i = 1; i <= 26; i++) {
+			arbol_verga_inserta(ctx, i);
+		}
+		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 12);
+	}END_TEST
+
 Suite *
 cacacomun_suite(void) {
 
@@ -1044,6 +1052,7 @@ cacacomun_suite(void) {
 	tcase_add_unchecked_fixture(tc_i_b, setup, teardown);
 	tcase_add_test(tc_i_b, test_arbol_verga_inserta);
 	tcase_add_test(tc_i_b, test_arbol_verga_borrar_para_nuva_raiz);
+	tcase_add_test(tc_i_b, test_arbol_verga_borrar_intermedio);
 	suite_add_tcase(s, tc_i_b);
 
 	return s;
