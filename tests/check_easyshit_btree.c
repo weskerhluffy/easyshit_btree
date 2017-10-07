@@ -1014,8 +1014,10 @@ START_TEST( test_arbol_verga_borrar_intermedio)
 		for (int i = 26; i >= 1; i--) {
 			arbol_verga_inserta(ctx, i);
 		}
-		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 12);
 		arbol_verga_dumpea_inorder(ctx, NULL, NULL);
+		arbol_verga_dumpea_bfs(ctx, NULL, NULL);
+		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 12);
+		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 18);
 		ck_assert_msg(falso,"caca");
 	}END_TEST
 
@@ -1034,7 +1036,7 @@ cacacomun_suite(void) {
 	tcase_add_test(tc_core, test_arbol_verga_borra_llave_inicial);
 	tcase_add_test(tc_core, test_arbol_verga_borra_llave_final);
 	tcase_add_test(tc_core, test_arbol_verga_borra_llave_medio);
-	suite_add_tcase(s, tc_core);
+//	suite_add_tcase(s, tc_core);
 
 	TCase *tc_rota = tcase_create("rotaciones");
 	tcase_add_unchecked_fixture(tc_rota, setup, teardown);
@@ -1048,12 +1050,12 @@ cacacomun_suite(void) {
 	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_primero);
 	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_ultimo);
 	tcase_add_test(tc_rota, test_arbol_verga_mergea_y_promueve_medio);
-	suite_add_tcase(s, tc_rota);
+//	suite_add_tcase(s, tc_rota);
 
 	TCase *tc_i_b = tcase_create("inserciones,borrados");
 	tcase_add_unchecked_fixture(tc_i_b, setup, teardown);
-	tcase_add_test(tc_i_b, test_arbol_verga_inserta);
-	tcase_add_test(tc_i_b, test_arbol_verga_borrar_para_nuva_raiz);
+//	tcase_add_test(tc_i_b, test_arbol_verga_inserta);
+//	tcase_add_test(tc_i_b, test_arbol_verga_borrar_para_nuva_raiz);
 	tcase_add_test(tc_i_b, test_arbol_verga_borrar_intermedio);
 	suite_add_tcase(s, tc_i_b);
 
