@@ -20,12 +20,6 @@ void teardown() {
 	caca_log_debug("alv el arbol");
 }
 
-/*
- START_TEST( test_arbol_verga_init)
- {
- }END_TEST
- */
-
 START_TEST( test_arbol_verga_init)
 	{
 		caca_log_debug("Una puta mierda");
@@ -1022,6 +1016,8 @@ START_TEST( test_arbol_verga_borrar_para_nuva_raiz)
 
 START_TEST( test_arbol_verga_borrar_intermedio)
 	{
+		void *llaves[100] = { NULL };
+		natural llaves_cnt=0;
 		for (int i = 50; i >= 1; i--) {
 			arbol_verga_inserta(ctx, i);
 		}
@@ -1054,7 +1050,7 @@ START_TEST( test_arbol_verga_borrar_intermedio)
 		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 45);
 		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 39);
 		arbol_verga_borra_llave(ctx, ctx->raiz_arbol_verga_ctx, 31);
-		arbol_verga_dumpea_inorder(ctx, NULL, NULL);
+		arbol_verga_dumpea_inorder(ctx, llaves, &llaves_cnt);
 		arbol_verga_dumpea_bfs(ctx, NULL, NULL);
 	}END_TEST
 

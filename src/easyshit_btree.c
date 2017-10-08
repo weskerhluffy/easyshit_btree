@@ -745,18 +745,18 @@ static inline bool arbol_verga_encuentra_llave_en_nodo(arbol_verga_ctx *ctx,
 		arbol_verga_datos_llave *datos_llave) {
 	bool encontrada = falso;
 	natural idx = 0;
+	int resultado_comp = 0;
 
 	for (idx = 0; idx < nodo->llaves_cnt_arbol_verga_nodo; idx++) {
-		// TODO: usar callback
-		if (arbol_verga_obten_llave_en_pos(nodo,idx) >= llave) {
+		resultado_comp = ctx->funcion_cmp_arbol_verga_ctx(
+				arbol_verga_obten_llave_en_pos(nodo, idx), llave);
+		if (resultado_comp >= 0) {
 			if (arbol_verga_obten_llave_en_pos(nodo,idx) == llave) {
 				encontrada = verdadero;
 			}
 			break;
 		}
 	}
-
-//	assert_timeout(idx < nodo->llaves_cnt_arbol_verga_nodo);
 
 	datos_llave->llave_arbol_verga_datos_llave = llave;
 	datos_llave->posicion_arbol_verga_datos_llave = idx;
@@ -1201,8 +1201,9 @@ static inline void arbol_verga_inserta_recursivo(arbol_verga_ctx *ctx,
 			hijo_der = arbol_verga_obten_hijo_der(nodo,
 					pos_sig_nodo_para_buscar);
 
-			// TODO: usar callback
-			if (llave < llave_promovida) {
+			int resultado_comp = ctx->funcion_cmp_arbol_verga_ctx(llave,
+					llave_promovida);
+			if (resultado_comp < 0) {
 				sig_nodo_para_buscar = hijo_izq;
 			} else {
 				sig_nodo_para_buscar = hijo_der;
@@ -1258,7 +1259,7 @@ static inline void arbol_verga_inserta(arbol_verga_ctx *ctx, void *llave) {
 }
 
 static inline void arbol_verga_dumpea_inorder_recursivo(arbol_verga_ctx *ctx,
-		arbol_verga_nodo *nodo, void *llaves, natural *llaves_cnt) {
+		arbol_verga_nodo *nodo, void **llaves, natural *llaves_cnt) {
 	int i;
 	if (nodo == ARBOL_VERGA_APUNTADOR_INVALIDO) {
 		return;
@@ -1267,6 +1268,7 @@ static inline void arbol_verga_dumpea_inorder_recursivo(arbol_verga_ctx *ctx,
 		arbol_verga_dumpea_inorder_recursivo(ctx,
 				arbol_verga_obten_hijo_en_pos(nodo, i), llaves, llaves_cnt);
 		printf("%u ", arbol_verga_obten_llave_en_pos(nodo, i));
+		llaves[(*llaves_cnt)++] = arbol_verga_obten_llave_en_pos(nodo, i);
 	}
 	arbol_verga_dumpea_inorder_recursivo(ctx,
 			arbol_verga_obten_hijo_en_pos(nodo, i), llaves, llaves_cnt);
@@ -1316,10 +1318,10 @@ static inline void arbol_verga_dumpea_bfs(arbol_verga_ctx *ctx, void *llaves,
 			printf("\n");
 			prof_ant = prof;
 		} else {
-				printf(" - ");
+			printf(" - ");
 		}
 		arbol_verga_dumpea_llaves_nodo(ctx, nodo);
-		if(ultimo_act){
+		if (ultimo_act) {
 //			printf(" -- ");
 		}
 		if (!arbol_verga_nodo_es_hoja(ctx, nodo)) {
@@ -1344,6 +1346,7 @@ static inline void arbol_verga_dumpea_bfs(arbol_verga_ctx *ctx, void *llaves,
 
 static inline void arbol_verga_dumpea_inorder(arbol_verga_ctx *ctx,
 		void *llaves, natural *llaves_cnt) {
+	*llaves_cnt = 0;
 	arbol_verga_dumpea_inorder_recursivo(ctx, ctx->raiz_arbol_verga_ctx, llaves,
 			llaves_cnt);
 	printf("\n");
