@@ -531,7 +531,7 @@ static inline void arbol_verga_libera_nodo(arbol_verga_ctx *ctx,
 
 static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 		arbol_verga_ctx *ctx, arbol_verga_nodo *nodo,
-		arbol_verga_datos_llave *datos_llave) {
+		arbol_verga_datos_llave *datos_llave, bool borra_hijo_der) {
 	natural pos_llave = 0;
 	natural offset_hijo = 0;
 	void *(*llaves)[ARBOL_VERGA_MAX_LLAVES] = NULL;
@@ -542,7 +542,7 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 	hijos = &nodo->hijos_arbol_verga_nodo;
 
 	pos_llave = datos_llave->posicion_arbol_verga_datos_llave;
-	if (!pos_llave && nodo->llaves_cnt_arbol_verga_nodo > 1) {
+	if (!borra_hijo_der) {
 		offset_hijo = 0;
 	} else {
 		offset_hijo = 1;
@@ -588,7 +588,7 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_datos_llave(
 
 static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *nodo, arbol_verga_datos_llave *datos_llave,
-		arbol_verga_nodo *nuevo_hijo) {
+		arbol_verga_nodo *nuevo_hijo, bool inserta_hijo_der) {
 	void *(*llaves)[ARBOL_VERGA_MAX_LLAVES] = NULL;
 	arbol_verga_nodo *(*hijos)[ARBOL_VERGA_MAX_HIJOS] = NULL;
 	natural offset_hijo = 0;
@@ -602,8 +602,7 @@ static inline void arbol_verga_inserta_llave_datos_llave(arbol_verga_ctx *ctx,
 	llaves = &nodo->llaves_arbol_verga_nodo;
 	hijos = &nodo->hijos_arbol_verga_nodo;
 
-	if (datos_llave->posicion_arbol_verga_datos_llave
-			|| !nodo->llaves_cnt_arbol_verga_nodo) {
+	if (inserta_hijo_der) {
 		offset_hijo = 1;
 	} else {
 		offset_hijo = 0;
@@ -667,6 +666,11 @@ static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
 		arbol_verga_nodo *hijo_der, arbol_verga_datos_llave *datos_llave) {
 	arbol_verga_nodo *hijo_de_llave_en_padre = NULL;
+	arbol_verga_nodo *hijo_a_promover = NULL;
+	void *llave_a_promover = NULL;
+
+	llave_a_promover = arbol_verga_obten_primer_llave(hijo_der);
+	hijo_a_promover = arbol_verga_obten_primer_hijo(hijo_der);
 
 	assert_timeout(hijo_der->llaves_cnt_arbol_verga_nodo>ARBOL_VERGA_MIN_LLAVES);
 	caca_log_debug("insertando en ijo izq");
@@ -675,42 +679,27 @@ static inline void arbol_verga_rota_izquierda(arbol_verga_ctx *ctx,
 							datos_llave->llave_arbol_verga_datos_llave,
 							.posicion_arbol_verga_datos_llave =
 									hijo_izq->llaves_cnt_arbol_verga_nodo },
-			arbol_verga_obten_primer_hijo(hijo_der));
-
-	if (datos_llave->posicion_arbol_verga_datos_llave
-			|| padre->llaves_cnt_arbol_verga_nodo < 2) {
-		hijo_de_llave_en_padre = arbol_verga_obten_hijo_der(padre,
-				datos_llave->posicion_arbol_verga_datos_llave);
-	} else {
-		hijo_de_llave_en_padre = arbol_verga_obten_hijo_izq(padre,
-				datos_llave->posicion_arbol_verga_datos_llave);
-	}
+			hijo_a_promover, verdadero);
 
 	caca_log_debug("borrando de padre");
-	arbol_verga_nodo *hijo_de_llave_en_padre_tmp =
-			arbol_verga_borra_llave_datos_llave(ctx, padre, datos_llave);
+	hijo_de_llave_en_padre = arbol_verga_borra_llave_datos_llave(ctx, padre,
+			datos_llave, verdadero);
 
-	caca_log_debug("el hijo de llave esperado %p, el real %p",
-			hijo_de_llave_en_padre, hijo_de_llave_en_padre_tmp);
-
-	assert_timeout(hijo_de_llave_en_padre == hijo_de_llave_en_padre_tmp);
+	caca_log_debug("el hijo de llave esperado %p", hijo_de_llave_en_padre);
 
 	caca_log_debug("reinsertando en padre");
 	arbol_verga_inserta_llave_datos_llave(ctx, padre,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
-							arbol_verga_obten_llave_en_pos(hijo_der, 0),
+							llave_a_promover,
 							.posicion_arbol_verga_datos_llave =
 									datos_llave->posicion_arbol_verga_datos_llave },
-			hijo_de_llave_en_padre);
+			hijo_de_llave_en_padre, verdadero);
 
-	arbol_verga_nodo *tmp = arbol_verga_obten_primer_hijo(hijo_der);
 	caca_log_debug("borrando de hijo der");
 	arbol_verga_nodo *tmp1 = arbol_verga_borra_llave_datos_llave(ctx, hijo_der,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
-							arbol_verga_obten_llave_en_pos(hijo_der, 0),
-							.posicion_arbol_verga_datos_llave = 0 });
-
-	assert_timeout(tmp == tmp1);
+							llave_a_promover,
+							.posicion_arbol_verga_datos_llave = 0 }, falso);
 
 }
 
@@ -718,47 +707,37 @@ static inline void arbol_verga_rota_derecha(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
 		arbol_verga_nodo *hijo_der, arbol_verga_datos_llave *datos_llave) {
 	arbol_verga_nodo *hijo_de_llave_en_padre = NULL;
+	arbol_verga_nodo *hijo_a_promover = NULL;
+	void *llave_a_promover = NULL;
+
+	llave_a_promover = arbol_verga_obten_ultima_llave(hijo_izq);
+	hijo_a_promover = arbol_verga_obten_ultimo_hijo(hijo_izq);
 
 	assert_timeout(hijo_izq->llaves_cnt_arbol_verga_nodo>ARBOL_VERGA_MIN_LLAVES);
 	arbol_verga_inserta_llave_datos_llave(ctx, hijo_der,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
 							datos_llave->llave_arbol_verga_datos_llave,
 							.posicion_arbol_verga_datos_llave = 0 },
-			arbol_verga_obten_ultimo_hijo(hijo_izq));
+			hijo_a_promover, falso);
 
-	if (datos_llave->posicion_arbol_verga_datos_llave
-			|| padre->llaves_cnt_arbol_verga_nodo < 2) {
-		hijo_de_llave_en_padre = arbol_verga_obten_hijo_der(padre,
-				datos_llave->posicion_arbol_verga_datos_llave);
-	} else {
-		hijo_de_llave_en_padre = arbol_verga_obten_hijo_izq(padre,
-				datos_llave->posicion_arbol_verga_datos_llave);
-	}
-
-	arbol_verga_nodo *hijo_de_llave_en_padre_tmp =
-			arbol_verga_borra_llave_datos_llave(ctx, padre, datos_llave);
-
-	assert_timeout(hijo_de_llave_en_padre == hijo_de_llave_en_padre_tmp);
+	hijo_de_llave_en_padre = arbol_verga_borra_llave_datos_llave(ctx, padre,
+			datos_llave, verdadero);
 
 	arbol_verga_inserta_llave_datos_llave(ctx, padre,
 			&(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave =
-							arbol_verga_obten_ultima_llave(hijo_izq),
+							llave_a_promover,
 							.posicion_arbol_verga_datos_llave =
 									datos_llave->posicion_arbol_verga_datos_llave },
-			hijo_de_llave_en_padre);
+			hijo_de_llave_en_padre, verdadero);
 
-	arbol_verga_nodo *tmp = arbol_verga_obten_ultimo_hijo(hijo_izq);
 	arbol_verga_nodo *tmp1 =
 			arbol_verga_borra_llave_datos_llave(ctx, hijo_izq,
 					&(arbol_verga_datos_llave ) {
 									.llave_arbol_verga_datos_llave =
-											arbol_verga_obten_ultima_llave(
-													hijo_izq),
+											llave_a_promover,
 									.posicion_arbol_verga_datos_llave =
-											hijo_izq->llaves_cnt_arbol_verga_nodo
-													- 1 });
-
-	assert_timeout(tmp == tmp1);
+											arbol_verga_obten_ultima_pos_llave(
+													hijo_izq) }, verdadero);
 }
 
 static inline bool arbol_verga_encuentra_llave_en_nodo(arbol_verga_ctx *ctx,
@@ -786,7 +765,8 @@ static inline bool arbol_verga_encuentra_llave_en_nodo(arbol_verga_ctx *ctx,
 }
 
 static inline void arbol_verga_inserta_llave_en_nodo(arbol_verga_ctx *ctx,
-		arbol_verga_nodo *nodo, void *llave, arbol_verga_nodo *nuevo_hijo) {
+		arbol_verga_nodo *nodo, void *llave, arbol_verga_nodo *nuevo_hijo,
+		bool inserta_hijo_der) {
 	arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
 					.llave_arbol_verga_datos_llave =
 					ARBOL_VERGA_APUNTADOR_INVALIDO,
@@ -799,11 +779,13 @@ static inline void arbol_verga_inserta_llave_en_nodo(arbol_verga_ctx *ctx,
 
 	assert_timeout(!encontrada_llave);
 
-	arbol_verga_inserta_llave_datos_llave(ctx, nodo, datos_llave, nuevo_hijo);
+	arbol_verga_inserta_llave_datos_llave(ctx, nodo, datos_llave, nuevo_hijo,
+			inserta_hijo_der);
 }
 
 static inline arbol_verga_nodo *arbol_verga_borra_llave_en_nodo(
-		arbol_verga_ctx *ctx, arbol_verga_nodo *nodo, void *llave) {
+		arbol_verga_ctx *ctx, arbol_verga_nodo *nodo, void *llave,
+		bool borra_hijo_der) {
 	arbol_verga_datos_llave *datos_llave = &(arbol_verga_datos_llave ) {
 					.llave_arbol_verga_datos_llave =
 					ARBOL_VERGA_APUNTADOR_INVALIDO,
@@ -819,14 +801,15 @@ static inline arbol_verga_nodo *arbol_verga_borra_llave_en_nodo(
 	caca_log_debug("la llave %p se encontro en %u", llave,
 			datos_llave->posicion_arbol_verga_datos_llave);
 
-	return arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave);
+	return arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave,
+			borra_hijo_der);
 }
 
 #define arbol_verga_inserta_al_final_con_datos_llave(ctx,nodo,llave, nuevo_hijo) \
 	arbol_verga_inserta_llave_datos_llave(ctx, nodo, \
 										 &(arbol_verga_datos_llave ) { .llave_arbol_verga_datos_llave = llave, \
 																	  .posicion_arbol_verga_datos_llave =arbol_verga_obten_ultima_pos_llave(nodo) +1}, \
-										 nuevo_hijo)
+										 nuevo_hijo,verdadero)
 
 static inline void arbol_verga_mergea_nodos(arbol_verga_ctx *ctx,
 		arbol_verga_nodo *hijo_izq, arbol_verga_nodo *padre,
@@ -847,10 +830,7 @@ static inline void arbol_verga_mergea_nodos(arbol_verga_ctx *ctx,
 				arbol_verga_obten_hijo_der(hijo_der,i));
 	}
 
-	arbol_verga_borra_llave_datos_llave(ctx, padre, datos_llave);
-
-	arbol_verga_pon_hijo_izq_en_pos(padre,
-			datos_llave->posicion_arbol_verga_datos_llave, hijo_izq);
+	arbol_verga_borra_llave_datos_llave(ctx, padre, datos_llave, verdadero);
 
 	arbol_verga_libera_nodo(ctx, hijo_der);
 }
@@ -1044,7 +1024,6 @@ static inline void arbol_verga_borra_llave(arbol_verga_ctx *ctx,
 			case izq_arbol_verga_caso_prestador:
 			case der_arbol_verga_caso_prestador: {
 				arbol_verga_nodo *nodo_a_restaurar = NULL;
-				natural pos_a_restaurar = 0;
 				void *llave_nueva = NULL;
 				if (cacaso == izq_arbol_verga_caso_prestador) {
 					llave_nueva = arbol_verga_encuentra_anterior_llave(ctx,
@@ -1054,18 +1033,12 @@ static inline void arbol_verga_borra_llave(arbol_verga_ctx *ctx,
 							nodo_prestador);
 				}
 
-				if (nodo->llaves_cnt_arbol_verga_nodo < 2
-						|| datos_llave->posicion_arbol_verga_datos_llave) {
-					pos_a_restaurar = posicion_llave + 1;
-				} else {
-					pos_a_restaurar = posicion_llave;
-				}
 				nodo_a_restaurar = arbol_verga_borra_llave_datos_llave(ctx,
-						nodo, datos_llave);
+						nodo, datos_llave, verdadero);
 
 				arbol_verga_inserta_llave_datos_llave(ctx, nodo,
 						arbol_verga_datos_genera_datos_llave_local(llave_nueva,
-								posicion_llave), nodo_a_restaurar);
+								posicion_llave), nodo_a_restaurar, verdadero);
 
 				arbol_verga_borra_llave(ctx, nodo_prestador, llave_nueva);
 			}
@@ -1091,7 +1064,12 @@ static inline void arbol_verga_borra_llave(arbol_verga_ctx *ctx,
 				break;
 			}
 		} else {
-			arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave);
+			bool borrar_hijo_der = falso;
+			if (datos_llave->posicion_arbol_verga_datos_llave) {
+				borrar_hijo_der = verdadero;
+			}
+			arbol_verga_borra_llave_datos_llave(ctx, nodo, datos_llave,
+					borrar_hijo_der);
 		}
 	}
 	arbol_verga_valida_hijos_invalidos(ctx, nodo,
@@ -1117,7 +1095,7 @@ static inline void arbol_verga_separa(arbol_verga_ctx *ctx,
 					arbol_verga_obten_llave_en_pos(nodo_a_separar,ARBOL_VERGA_POSICION_MEDIA_LLAVES+1),
 					0),
 			arbol_verga_obten_hijo_en_pos(nodo_a_separar,
-					ARBOL_VERGA_POSICION_MEDIA_LLAVES+1));
+					ARBOL_VERGA_POSICION_MEDIA_LLAVES+1), falso);
 
 	caca_log_debug(
 			"en nueov nodo_a_separar insertada llave %p hijo %p en pos %u",
@@ -1140,7 +1118,7 @@ static inline void arbol_verga_separa(arbol_verga_ctx *ctx,
 		arbol_verga_inserta_llave_datos_llave(ctx, nuevo_nodo,
 				arbol_verga_datos_genera_datos_llave_local(llave_actual,
 						nuevo_nodo->llaves_cnt_arbol_verga_nodo),
-				arbol_verga_obten_hijo_der(nodo_a_separar, i));
+				arbol_verga_obten_hijo_der(nodo_a_separar, i), verdadero);
 		caca_log_debug(
 				"insertando llave %p hijo %p en pos orig %u en nuevo en pos %u",
 				llave_actual, arbol_verga_obten_hijo_der(nodo_a_separar,i), i,
@@ -1154,7 +1132,8 @@ static inline void arbol_verga_separa(arbol_verga_ctx *ctx,
 
 		arbol_verga_borra_llave_datos_llave(ctx, nodo_a_separar,
 				arbol_verga_datos_genera_datos_llave_local(llave_actual,
-						arbol_verga_obten_ultima_pos_llave(nodo_a_separar)));
+						arbol_verga_obten_ultima_pos_llave(nodo_a_separar)),
+				verdadero);
 	}
 
 	resultado_sep->nodo_nuevo_arbol_verga_resultado_separar = nuevo_nodo;
@@ -1178,24 +1157,12 @@ static inline void arbol_verga_separa_y_promueve(arbol_verga_ctx *ctx,
 			arbol_verga_datos_genera_datos_llave_local(
 					resultado_sep->llave_para_promover_arbol_verga_resultado_separar,
 					posicion_hijo_a_separar),
-			resultado_sep->nodo_nuevo_arbol_verga_resultado_separar);
+			resultado_sep->nodo_nuevo_arbol_verga_resultado_separar, verdadero);
 
 	caca_log_debug("insertada llave %p en pos %u de padre",
 			resultado_sep->llave_para_promover_arbol_verga_resultado_separar,
 			posicion_hijo_a_separar);
 
-	if (!posicion_hijo_a_separar) {
-		caca_log_debug("swapeando al max");
-		arbol_verga_nodo *hijo_izq = arbol_verga_obten_hijo_der(nodo,
-				posicion_hijo_a_separar);
-		arbol_verga_nodo *hijo_der = arbol_verga_obten_hijo_izq(nodo,
-				posicion_hijo_a_separar);
-
-		arbol_verga_pon_hijo_izq_en_pos(nodo, posicion_hijo_a_separar,
-				hijo_izq);
-		arbol_verga_pon_hijo_der_en_pos(nodo, posicion_hijo_a_separar,
-				hijo_der);
-	}
 }
 
 static inline void arbol_verga_inserta_recursivo(arbol_verga_ctx *ctx,
@@ -1204,7 +1171,7 @@ static inline void arbol_verga_inserta_recursivo(arbol_verga_ctx *ctx,
 	assert_timeout(nodo->llaves_cnt_arbol_verga_nodo<ARBOL_VERGA_MAX_LLAVES);
 	if (arbol_verga_nodo_es_hoja(ctx, nodo)) {
 		arbol_verga_inserta_llave_en_nodo(ctx, nodo, llave,
-		ARBOL_VERGA_APUNTADOR_INVALIDO);
+		ARBOL_VERGA_APUNTADOR_INVALIDO, verdadero);
 	} else {
 		natural pos_sig_nodo_para_buscar = 0;
 		arbol_verga_nodo *sig_nodo_para_buscar = NULL;
@@ -1260,7 +1227,7 @@ static inline void arbol_verga_inserta(arbol_verga_ctx *ctx, void *llave) {
 		raiz = arbol_verga_alloca_nodo(ctx);
 		arbol_verga_inserta_llave_datos_llave(ctx, raiz,
 				arbol_verga_datos_genera_datos_llave_local(llave, 0),
-				ARBOL_VERGA_APUNTADOR_INVALIDO);
+				ARBOL_VERGA_APUNTADOR_INVALIDO, verdadero);
 		ctx->raiz_arbol_verga_ctx = raiz;
 		caca_log_debug("insertada directo en la raiz");
 
@@ -1278,7 +1245,8 @@ static inline void arbol_verga_inserta(arbol_verga_ctx *ctx, void *llave) {
 					arbol_verga_datos_genera_datos_llave_local(
 							resu_sep->llave_para_promover_arbol_verga_resultado_separar,
 							0),
-					resu_sep->nodo_nuevo_arbol_verga_resultado_separar);
+					resu_sep->nodo_nuevo_arbol_verga_resultado_separar,
+					verdadero);
 			arbol_verga_pon_hijo_izq_en_pos(nueva_raiz, 0, raiz);
 
 			raiz = ctx->raiz_arbol_verga_ctx = nueva_raiz;
@@ -1312,23 +1280,66 @@ static inline void arbol_verga_dumpea_llaves_nodo(arbol_verga_ctx *ctx,
 //	printf("\n");
 }
 
+typedef struct arbol_verga_nodo_profundidad {
+	arbol_verga_nodo *nodo_arbol_verga_nodo_profundidad;
+	natural profundidad_arbol_verga_nodo_profundidad;
+	bool ultimo_arbol_verga_nodo_profundidad;
+} arbol_verga_nodo_profundidad;
+
 static inline void arbol_verga_dumpea_bfs(arbol_verga_ctx *ctx, void *llaves,
 		natural *llaves_cnt) {
 	listilla_fifo *cola = NULL;
+	arbol_verga_nodo_profundidad *cacas = NULL;
+	natural cacas_cnt = 0;
+	arbol_verga_nodo_profundidad *caca_act = NULL;
+	natural prof_ant = ARBOL_VERGA_VALOR_INVALIDO;
+
+	cacas = calloc(ARBOL_VERGA_MAX_NODOS_LIBRES,
+			sizeof(arbol_verga_nodo_profundidad));
 
 	cola = list_new();
 
-	list_add_element(cola, ctx->raiz_arbol_verga_ctx);
+	caca_act = cacas + cacas_cnt++;
+	caca_act->nodo_arbol_verga_nodo_profundidad = ctx->raiz_arbol_verga_ctx;
+	caca_act->profundidad_arbol_verga_nodo_profundidad = 0;
+	list_add_element(cola, caca_act);
 
 	while (!list_empty(cola)) {
-		arbol_verga_nodo *nodo = list_remove_element(cola);
+		arbol_verga_nodo *nodo = NULL;
+		natural prof = 0;
+		bool ultimo_act = falso;
+		caca_act = list_remove_element(cola);
+		nodo = caca_act->nodo_arbol_verga_nodo_profundidad;
+		prof = caca_act->profundidad_arbol_verga_nodo_profundidad;
+		ultimo_act = caca_act->ultimo_arbol_verga_nodo_profundidad;
+		if (prof_ant != prof) {
+			printf("\n");
+			prof_ant = prof;
+		} else {
+				printf(" - ");
+		}
 		arbol_verga_dumpea_llaves_nodo(ctx, nodo);
-		for (int i = 0; i <= nodo->llaves_cnt_arbol_verga_nodo; i++) {
-			list_add_element(cola, arbol_verga_obten_hijo_en_pos(nodo, i));
+		if(ultimo_act){
+//			printf(" -- ");
+		}
+		if (!arbol_verga_nodo_es_hoja(ctx, nodo)) {
+			for (int i = 0; i <= nodo->llaves_cnt_arbol_verga_nodo; i++) {
+				caca_act = cacas + cacas_cnt++;
+				assert_timeout(
+						arbol_verga_obten_hijo_en_pos(nodo,i)!=ARBOL_VERGA_APUNTADOR_INVALIDO);
+				caca_act->nodo_arbol_verga_nodo_profundidad =
+						arbol_verga_obten_hijo_en_pos(nodo, i);
+				caca_act->profundidad_arbol_verga_nodo_profundidad = prof + 1;
+				caca_act->ultimo_arbol_verga_nodo_profundidad = i
+						== arbol_verga_obten_ultima_pos_llave(nodo);
+				list_add_element(cola, caca_act);
+			}
 		}
 	}
+	printf("\n");
 
 	list_free(cola);
+	free(cacas);
 }
 
 static inline void arbol_verga_dumpea_inorder(arbol_verga_ctx *ctx,
