@@ -34,3 +34,7 @@ tests/check_easyshit_btree.log
 tests/test-suite.log
 
 shit
+
+*.plist
+
+src/easyshit_btree.dSYM/Contents/Resources/DWARF/easyshit_btree

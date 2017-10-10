@@ -1267,7 +1267,7 @@ static inline void arbol_verga_dumpea_inorder_recursivo(arbol_verga_ctx *ctx,
 	for (i = 0; i < nodo->llaves_cnt_arbol_verga_nodo; i++) {
 		arbol_verga_dumpea_inorder_recursivo(ctx,
 				arbol_verga_obten_hijo_en_pos(nodo, i), llaves, llaves_cnt);
-		printf("%u ", arbol_verga_obten_llave_en_pos(nodo, i));
+//		printf("%u ", arbol_verga_obten_llave_en_pos(nodo, i));
 		llaves[(*llaves_cnt)++] = arbol_verga_obten_llave_en_pos(nodo, i);
 	}
 	arbol_verga_dumpea_inorder_recursivo(ctx,
@@ -1349,14 +1349,110 @@ static inline void arbol_verga_dumpea_inorder(arbol_verga_ctx *ctx,
 	*llaves_cnt = 0;
 	arbol_verga_dumpea_inorder_recursivo(ctx, ctx->raiz_arbol_verga_ctx, llaves,
 			llaves_cnt);
-	printf("\n");
+//	printf("\n");
 }
 
 #endif
 
+#define EASYSHIT_TAM_MAX_PALABRA 50
+#define EASYSHIT_MAX_PALABRAS 50
+#define EASYSHIT_TAM_MAX_LINEA (EASYSHIT_MAX_PALABRAS*(EASYSHIT_TAM_MAX_PALABRA+1))
+
+typedef struct easyshit_contenedor_cadena {
+	natural posicion;
+	natural tamano;
+	char cagada[EASYSHIT_TAM_MAX_PALABRA];
+} easyshit_contenedor_cadena;
+
+char *set_palabras = (char[EASYSHIT_TAM_MAX_LINEA] ) { '\0' };
+easyshit_contenedor_cadena contenedores[EASYSHIT_MAX_PALABRAS] = { 0 };
+natural contenedores_cnt = 0;
+
+int easyshit_compara_mierda(void *pa, void *pb) {
+	easyshit_contenedor_cadena *a = pa;
+	easyshit_contenedor_cadena *b = pb;
+
+	if (a->tamano == b->tamano) {
+		return a->posicion - b->posicion;
+	} else {
+		return a->tamano - b->tamano;
+	}
+}
+
+char * caca_comun_trim(char * s) {
+	int l = strlen(s);
+
+	caca_log_debug("la palabra orig %s", s);
+
+	while (isspace(s[l - 1]))
+		--l;
+	while (*s && isspace(*s))
+		++s, --l;
+
+	s[l] = '\0';
+	caca_log_debug("la palabra trimeada %s", s);
+	return s;
+}
+
+static inline void easyshit_main() {
+	natural num_sets = 0;
+
+	scanf("%u\n", &num_sets);
+	caca_log_debug("num cacas %u", num_sets);
+
+	for (int i = 0; i < num_sets; i++) {
+		char *palabra_act = NULL;
+		natural ass = getline(&set_palabras,
+				&(size_t ) { EASYSHIT_TAM_MAX_LINEA }, stdin);
+		caca_log_debug("la mierda laida %u %s", ass, set_palabras);
+		contenedores_cnt = 0;
+		palabra_act = strtok(set_palabras, " ");
+		palabra_act = caca_comun_trim(palabra_act);
+		natural idx = 0;
+		while (palabra_act) {
+			palabra_act = caca_comun_trim(palabra_act);
+			easyshit_contenedor_cadena *cont_act = contenedores
+					+ contenedores_cnt;
+
+			caca_log_debug("la palabra act %s", palabra_act);
+			strcpy(cont_act->cagada, palabra_act);
+			cont_act->posicion = idx;
+			cont_act->tamano = strlen(palabra_act);
+			palabra_act = strtok(NULL, " ");
+			idx++;
+			contenedores_cnt++;
+		}
+
+		arbol_verga_ctx *ctx = arbol_verga_init(easyshit_compara_mierda);
+
+		for (int i = 0; i < idx; i++) {
+			arbol_verga_inserta(ctx, contenedores + i);
+		}
+
+		easyshit_contenedor_cadena *contenedores_ord[EASYSHIT_MAX_PALABRAS] = {
+		NULL };
+		natural contenedores_ord_cnt = 0;
+
+		arbol_verga_dumpea_inorder(ctx, contenedores_ord,
+				&contenedores_ord_cnt);
+
+		for (int i = 0; i < contenedores_ord_cnt; i++) {
+			caca_log_debug("la cadenita en pos %u es %s", i,
+					contenedores_ord[i]->cagada);
+			printf("%s", contenedores_ord[i]->cagada);
+			if (i < contenedores_ord_cnt - 1) {
+				printf(" ");
+			}
+		}
+		printf("\n");
+
+		arbol_verga_fini(ctx);
+	}
+}
+
 #ifndef INCLUIDO_PRUEBA
 int main(void) {
-	puts("he corrido con algo de suerte"); /* prints he corrido con algo de suerte */
+	easyshit_main();
 	return EXIT_SUCCESS;
 }
 #endif
